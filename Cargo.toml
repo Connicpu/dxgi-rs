@@ -1,0 +1,6 @@
+[package]
+name = "dxgi"
+version = "0.1.0"
+authors = ["Connie Hilarides <conni_h@outlook.com>"]
+
+[dependencies]
