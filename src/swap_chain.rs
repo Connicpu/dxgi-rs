@@ -67,6 +67,23 @@ impl SwapChain {
             Error::map_if(hr, || isfs.as_some_from(|| Output::from_raw(out)))
         }
     }
+
+    // TODO: get_desc
+    // TODO: get_fullscreen_desc
+    // TODO: get_hwnd
+    // TODO: get_core_window
+    // TODO: get_restrict_to_output
+    // TODO: get_containing_output
+    // TODO: get_frame_statistics
+    // TODO: get_last_present_count
+    // TODO: get_background_color
+    // TODO: get_rotation
+
+    // TODO: set_background_color
+    // TODO: set_rotation
+    // TODO: set_fullscreen_state
+    // TODO: resize_buffers
+    // TODO: resize_target
 }
 
 unsafe impl Send for SwapChain {}
@@ -120,14 +137,16 @@ impl<'a> SwapChainHwndBuilder<'a> {
     }
 
     #[inline]
+    /// Required
     pub fn hwnd(mut self, hwnd: HWND) -> Self {
         self.hwnd = hwnd;
         self
     }
 
     #[inline]
-    pub fn restrict_output(mut self, out: Option<&'a Output>) -> Self {
-        self.restrict_out = out;
+    /// Optional
+    pub fn restrict_output(mut self, out: &'a Output) -> Self {
+        self.restrict_out = Some(out);
         self
     }
 }
@@ -162,6 +181,7 @@ macro_rules! impl_scbuilder_desc_fns {
     ($builder:ident) => {
         impl<'a> $builder <'a> {
             #[inline]
+            /// Default is 0x0 (i.e. auto-detect)
             pub fn size(mut self, width: u32, height: u32) -> Self {
                 self.desc.Width = width;
                 self.desc.Height = height;
@@ -169,12 +189,14 @@ macro_rules! impl_scbuilder_desc_fns {
             }
 
             #[inline]
+            /// Default RGBA8 UNORM
             pub fn format(mut self, format: DXGI_FORMAT) -> Self {
                 self.desc.Format = format;
                 self
             }
 
             #[inline]
+            /// Enable MSAA. Default is 1, 0
             pub fn samples(mut self, count: u32, quality: u32) -> Self {
                 self.desc.SampleDesc.Count = count;
                 self.desc.SampleDesc.Quality = quality;
@@ -182,42 +204,49 @@ macro_rules! impl_scbuilder_desc_fns {
             }
 
             #[inline]
+            /// Default is BACK_BUFFER | RENDER_TARGET_OUTPUT
             pub fn buffer_usage(mut self, usage: DXGI_USAGE) -> Self {
                 self.desc.BufferUsage = usage;
                 self
             }
 
             #[inline]
+            /// Default is 2
             pub fn buffer_count(mut self, count: u32) -> Self {
                 self.desc.BufferCount = count;
                 self
             }
 
             #[inline]
+            /// Default is STRETCH
             pub fn scaling(mut self, scaling: DXGI_SCALING) -> Self {
                 self.desc.Scaling = scaling;
                 self
             }
 
             #[inline]
+            /// Default is DISCARD
             pub fn swap_effect(mut self, effect: DXGI_SWAP_EFFECT) -> Self {
                 self.desc.SwapEffect = effect;
                 self
             }
 
             #[inline]
+            /// Default is UNSPECIFIED
             pub fn alpha_mode(mut self, mode: DXGI_ALPHA_MODE) -> Self {
                 self.desc.AlphaMode = mode;
                 self
             }
 
             #[inline]
+            /// None specified by default
             pub fn flags(mut self, flags: DXGI_SWAP_CHAIN_FLAG) -> Self {
                 self.desc.Flags = flags;
                 self
             }
 
             #[inline]
+            /// Default is 60/1
             pub fn refresh_rate(mut self, hz: Ratio<u32>) -> Self {
                 self.fs_desc.RefreshRate.Numerator = *hz.numer();
                 self.fs_desc.RefreshRate.Denominator = *hz.denom();
@@ -225,18 +254,21 @@ macro_rules! impl_scbuilder_desc_fns {
             }
 
             #[inline]
+            /// Default is UNSPECIFIED
             pub fn scanline_ordering(mut self, order: DXGI_MODE_SCANLINE_ORDER) -> Self {
                 self.fs_desc.ScanlineOrdering = order;
                 self
             }
 
             #[inline]
+            /// Default is UNSPECIFIED
             pub fn fullscreen_scaling(mut self, scaling: DXGI_MODE_SCALING) -> Self {
                 self.fs_desc.Scaling = scaling;
                 self
             }
 
             #[inline]
+            /// Default is true
             pub fn windowed(mut self, windowed: bool) -> Self {
                 self.fs_desc.Windowed = if windowed { 1 } else { 0 };
                 self
