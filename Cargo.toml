@@ -1,6 +1,16 @@
 [package]
 name = "dxgi"
-version = "0.1.0"
+version = "0.0.1"
 authors = ["Connie Hilarides <conni_h@outlook.com>"]
 
 [dependencies]
+wio = "0.2.0"
+num = "0.1.42"
+boolinator = "2.4.0"
+
+[dependencies.winapi]
+version = "0.3"
+features = ["dxgi1_2", "guiddef", "minwindef", "unknwnbase", "winbase", "windef", "winerror", "winnt"]
+
+[dev-dependencies]
+windows_dpi = "0.3"
