@@ -1,3 +1,5 @@
+#![cfg(windows)]
+
 extern crate boolinator;
 extern crate num;
 extern crate winapi;

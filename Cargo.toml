@@ -1,22 +1,23 @@
 [package]
 name = "dxgi"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Connie Hilarides <conni_h@outlook.com>"]
 repository = "https://github.com/Connicpu/dxgi-rs"
 license = "MIT"
+documentation = "https://docs.rs/dxgi/*/x86_64-pc-windows-msvc/dxgi/"
 description = """
 Provides a convenient, higher level wrapping of the DXGI APIs. Targetting dxgi 1.2 stuff
 that works on Windows 7.
 """
 
-[dependencies]
+[target.'cfg(windows)'.dependencies]
 wio = "0.2.0"
 num = "0.1.42"
 boolinator = "2.4.0"
 
-[dependencies.winapi]
+[target.'cfg(windows)'.dependencies.winapi]
 version = "0.3"
 features = ["dxgi1_2", "guiddef", "minwindef", "unknwnbase", "winbase", "windef", "winerror", "winnt"]
 
-[dev-dependencies]
+[target.'cfg(windows)'.dev-dependencies]
 windows_dpi = "0.3"
