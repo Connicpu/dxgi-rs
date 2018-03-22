@@ -33,3 +33,6 @@ impl Device {
         }
     }
 }
+
+unsafe impl Send for Device {}
+unsafe impl Sync for Device {}

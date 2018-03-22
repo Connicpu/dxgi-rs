@@ -76,6 +76,9 @@ impl Surface {
     }
 }
 
+unsafe impl Send for Surface {}
+unsafe impl Sync for Surface {}
+
 pub struct SurfaceDesc {
     desc: DXGI_SURFACE_DESC,
 }

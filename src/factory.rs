@@ -79,6 +79,9 @@ impl Factory {
     }
 }
 
+unsafe impl Send for Factory {}
+unsafe impl Sync for Factory {}
+
 pub struct AdapterIter<'a> {
     factory: &'a Factory,
     adapter: u32,

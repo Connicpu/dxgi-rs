@@ -69,6 +69,9 @@ impl SwapChain {
     }
 }
 
+unsafe impl Send for SwapChain {}
+unsafe impl Sync for SwapChain {}
+
 /// This should be implemented for e.g. d3d11::Texture2d
 pub unsafe trait BackbufferTexture {
     fn uuidof() -> GUID;

@@ -167,6 +167,9 @@ impl Output {
     }
 }
 
+unsafe impl Send for Output {}
+unsafe impl Sync for Output {}
+
 pub struct OutputDesc {
     desc: DXGI_OUTPUT_DESC,
 }

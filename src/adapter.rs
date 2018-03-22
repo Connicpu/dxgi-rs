@@ -48,6 +48,9 @@ impl Adapter {
     }
 }
 
+unsafe impl Send for Adapter {}
+unsafe impl Sync for Adapter {}
+
 impl fmt::Debug for Adapter {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         fmt.debug_struct("Adapter")
