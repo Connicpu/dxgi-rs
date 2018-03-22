@@ -18,6 +18,7 @@ pub struct Factory {
 }
 
 impl Factory {
+    #[inline]
     pub fn new() -> Result<Factory, Error> {
         unsafe {
             let mut ptr = ptr::null_mut();
@@ -44,11 +45,12 @@ impl Factory {
     #[inline]
     pub fn adapters(&self) -> AdapterIter {
         AdapterIter {
-            factory: self,
+            factory: &self.ptr,
             adapter: 0,
         }
     }
 
+    #[inline]
     pub fn get_window_association(&self) -> Result<HWND, Error> {
         unsafe {
             let mut hwnd = ptr::null_mut();
@@ -57,11 +59,13 @@ impl Factory {
         }
     }
 
+    #[inline]
     pub unsafe fn make_window_association(&self, hwnd: HWND, flags: UINT) -> Result<(), Error> {
         let hr = self.ptr.MakeWindowAssociation(hwnd, flags);
         Error::map(hr, ())
     }
 
+    #[inline]
     pub unsafe fn create_software_adapter(&self, module: HMODULE) -> Result<Adapter, Error> {
         let mut ptr = ptr::null_mut();
         let hr = self.ptr.CreateSoftwareAdapter(module, &mut ptr);
@@ -82,8 +86,9 @@ impl Factory {
 unsafe impl Send for Factory {}
 unsafe impl Sync for Factory {}
 
+#[derive(Copy, Clone)]
 pub struct AdapterIter<'a> {
-    factory: &'a Factory,
+    factory: &'a IDXGIFactory2,
     adapter: u32,
 }
 
@@ -93,7 +98,7 @@ impl<'a> Iterator for AdapterIter<'a> {
     fn next(&mut self) -> Option<Adapter> {
         unsafe {
             let mut ptr = ptr::null_mut();
-            let result = self.factory.ptr.EnumAdapters1(self.adapter, &mut ptr);
+            let result = self.factory.EnumAdapters1(self.adapter, &mut ptr);
             self.adapter += 1;
 
             match result {

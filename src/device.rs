@@ -12,16 +12,19 @@ pub struct Device {
 }
 
 impl Device {
+    #[inline]
     pub unsafe fn from_raw(ptr: *mut IDXGIDevice) -> Device {
         Device {
             ptr: ComPtr::from_raw(ptr),
         }
     }
 
+    #[inline]
     pub unsafe fn get_raw(&self) -> *mut IDXGIDevice {
         self.ptr.as_raw()
     }
 
+    #[inline]
     pub fn get_adapter(&self) -> Result<Adapter, Error> {
         unsafe {
             let mut ptr = ptr::null_mut();

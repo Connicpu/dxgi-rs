@@ -14,16 +14,19 @@ pub struct Surface {
 }
 
 impl Surface {
+    #[inline]
     pub unsafe fn from_raw(ptr: *mut IDXGISurface) -> Surface {
         Surface {
             ptr: ComPtr::from_raw(ptr),
         }
     }
 
+    #[inline]
     pub unsafe fn get_raw(&self) -> *mut IDXGISurface {
         self.ptr.as_raw()
     }
 
+    #[inline]
     pub fn get_desc(&self) -> SurfaceDesc {
         unsafe {
             let mut desc: SurfaceDesc = mem::uninitialized();
@@ -33,6 +36,7 @@ impl Surface {
         }
     }
 
+    #[inline]
     pub unsafe fn map<'a>(
         &'a self,
         read: bool,
@@ -79,27 +83,33 @@ impl Surface {
 unsafe impl Send for Surface {}
 unsafe impl Sync for Surface {}
 
+#[derive(Copy, Clone)]
 pub struct SurfaceDesc {
     desc: DXGI_SURFACE_DESC,
 }
 
 impl SurfaceDesc {
+    #[inline]
     pub fn width(&self) -> u32 {
         self.desc.Width
     }
 
+    #[inline]
     pub fn height(&self) -> u32 {
         self.desc.Height
     }
 
+    #[inline]
     pub fn format(&self) -> DXGI_FORMAT {
         self.desc.Format
     }
 
+    #[inline]
     pub fn sample_count(&self) -> u32 {
         self.desc.SampleDesc.Count
     }
 
+    #[inline]
     pub fn sample_quality(&self) -> u32 {
         self.desc.SampleDesc.Quality
     }
@@ -113,6 +123,7 @@ pub struct SurfaceMap<'a> {
 }
 
 impl<'a> SurfaceMap<'a> {
+    #[inline]
     pub fn row<T>(&self, row: u32) -> &[T]
     where
         T: Copy,
@@ -124,6 +135,7 @@ impl<'a> SurfaceMap<'a> {
         }
     }
 
+    #[inline]
     pub fn row_mut<T>(&mut self, row: u32) -> &mut [T]
     where
         T: Copy,
@@ -137,6 +149,7 @@ impl<'a> SurfaceMap<'a> {
 }
 
 impl<'a> Drop for SurfaceMap<'a> {
+    #[inline]
     fn drop(&mut self) {
         unsafe {
             self.surface.Unmap();

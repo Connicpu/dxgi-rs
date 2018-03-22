@@ -1,8 +1,9 @@
 use device::Device;
 use error::Error;
 use factory::Factory;
-use output::Output;
+use output::{Mode, Output};
 
+use std::mem;
 use std::ptr;
 
 use boolinator::Boolinator;
@@ -17,6 +18,7 @@ use winapi::shared::dxgi1_2::{DXGI_SWAP_CHAIN_DESC1, IDXGISwapChain1, DXGI_ALPHA
                               DXGI_SCALING, DXGI_SWAP_CHAIN_FULLSCREEN_DESC};
 use winapi::shared::guiddef::GUID;
 use winapi::shared::windef::HWND;
+use winapi::shared::winerror::SUCCEEDED;
 use wio::com::ComPtr;
 
 pub struct SwapChain {
@@ -69,7 +71,16 @@ impl SwapChain {
         }
     }
 
-    // TODO: get_desc
+    #[inline]
+    pub fn get_desc(&self) -> SwapChainDesc {
+        unsafe {
+            let mut scd: SwapChainDesc = mem::uninitialized();
+            let hr = self.ptr.GetDesc1(&mut scd.desc);
+            assert!(SUCCEEDED(hr));
+            scd
+        }
+    }
+
     // TODO: get_fullscreen_desc
     // TODO: get_hwnd
     // TODO: get_core_window
@@ -83,8 +94,27 @@ impl SwapChain {
     // TODO: set_background_color
     // TODO: set_rotation
     // TODO: set_fullscreen_state
-    // TODO: resize_buffers
-    // TODO: resize_target
+
+    #[inline]
+    pub fn resize_buffers(&self) -> ResizeBuffers {
+        let desc = self.get_desc();
+        ResizeBuffers {
+            swap_chain: &self.ptr,
+            count: desc.buffer_count(),
+            width: desc.width(),
+            height: desc.height(),
+            format: desc.format(),
+            flags: desc.flags(),
+        }
+    }
+
+    #[inline]
+    pub fn resize_target(&self, mode: &Mode) -> Result<(), Error> {
+        unsafe {
+            let hr = self.ptr.ResizeTarget(mode.raw());
+            Error::map(hr, ())
+        }
+    }
 }
 
 unsafe impl Send for SwapChain {}
@@ -96,6 +126,161 @@ pub unsafe trait BackbufferTexture {
     fn from_raw(raw: *mut c_void) -> Self;
 }
 
+pub struct SwapChainDesc {
+    desc: DXGI_SWAP_CHAIN_DESC1,
+}
+
+impl SwapChainDesc {
+    #[inline]
+    pub fn width(&self) -> u32 {
+        self.desc.Width
+    }
+
+    #[inline]
+    pub fn height(&self) -> u32 {
+        self.desc.Height
+    }
+
+    #[inline]
+    pub fn format(&self) -> DXGI_FORMAT {
+        self.desc.Format
+    }
+
+    #[inline]
+    pub fn stereo(&self) -> bool {
+        self.desc.Stereo != 0
+    }
+
+    #[inline]
+    pub fn sample_count(&self) -> u32 {
+        self.desc.SampleDesc.Count
+    }
+
+    #[inline]
+    pub fn sample_quality(&self) -> u32 {
+        self.desc.SampleDesc.Quality
+    }
+
+    #[inline]
+    pub fn buffer_usage(&self) -> DXGI_USAGE {
+        self.desc.BufferUsage
+    }
+
+    #[inline]
+    pub fn buffer_count(&self) -> u32 {
+        self.desc.BufferCount
+    }
+
+    #[inline]
+    pub fn scaling(&self) -> DXGI_SCALING {
+        self.desc.Scaling
+    }
+
+    #[inline]
+    pub fn swap_effect(&self) -> DXGI_SWAP_EFFECT {
+        self.desc.SwapEffect
+    }
+
+    #[inline]
+    pub fn alpha_mode(&self) -> DXGI_ALPHA_MODE {
+        self.desc.AlphaMode
+    }
+
+    #[inline]
+    pub fn flags(&self) -> DXGI_SWAP_CHAIN_FLAG {
+        self.desc.Flags
+    }
+}
+
+#[derive(Copy, Clone)]
+pub struct FullscreenDesc {
+    desc: DXGI_SWAP_CHAIN_FULLSCREEN_DESC,
+}
+
+impl FullscreenDesc {
+    #[inline]
+    pub fn refresh_rate(&self) -> Ratio<u32> {
+        Ratio::new(self.desc.RefreshRate.Numerator, self.desc.RefreshRate.Denominator)
+    }
+
+    #[inline]
+    pub fn scanline_ordering(&self) -> DXGI_MODE_SCANLINE_ORDER {
+        self.desc.ScanlineOrdering
+    }
+
+    #[inline]
+    pub fn scaling(&self) -> DXGI_MODE_SCALING {
+        self.desc.Scaling
+    }
+
+    #[inline]
+    pub fn windowed(&self) -> bool {
+        self.desc.Windowed != 0
+    }
+}
+
+#[must_use]
+pub struct ResizeBuffers<'a> {
+    swap_chain: &'a IDXGISwapChain1,
+    count: u32,
+    width: u32,
+    height: u32,
+    format: DXGI_FORMAT,
+    flags: DXGI_SWAP_CHAIN_FLAG,
+}
+
+impl<'a> ResizeBuffers<'a> {
+    #[inline]
+    pub fn finish(self) -> Result<(), Error> {
+        unsafe {
+            let hr = self.swap_chain.ResizeBuffers(
+                self.count,
+                self.width,
+                self.height,
+                self.format,
+                self.flags,
+            );
+
+            Error::map(hr, ())
+        }
+    }
+
+    #[inline]
+    pub fn dimensions(mut self, width: u32, height: u32) -> Self {
+        self.width = width;
+        self.height = height;
+        self
+    }
+
+    #[inline]
+    pub fn format(mut self, format: DXGI_FORMAT) -> Self {
+        self.format = format;
+        self
+    }
+
+    #[inline]
+    pub fn buffer_count(mut self, count: u32) -> Self {
+        self.count = count;
+        self
+    }
+
+    #[inline]
+    pub fn flags(mut self, flags: DXGI_SWAP_CHAIN_FLAG) -> Self {
+        self.flags = flags;
+        self
+    }
+
+    #[inline]
+    pub fn modify_flags<F>(mut self, func: F) -> Self
+    where
+        F: FnOnce(DXGI_SWAP_CHAIN_FLAG) -> DXGI_SWAP_CHAIN_FLAG,
+    {
+        self.flags = func(self.flags);
+        self
+    }
+}
+
+#[must_use]
 pub struct SwapChainHwndBuilder<'a> {
     factory: &'a Factory,
     device: &'a Device,
@@ -118,6 +303,7 @@ impl<'a> SwapChainHwndBuilder<'a> {
         }
     }
 
+    #[inline]
     pub fn build(self) -> Result<SwapChain, Error> {
         assert!(!self.hwnd.is_null());
         unsafe {

@@ -170,11 +170,13 @@ impl Output {
 unsafe impl Send for Output {}
 unsafe impl Sync for Output {}
 
+#[derive(Copy, Clone)]
 pub struct OutputDesc {
     desc: DXGI_OUTPUT_DESC,
 }
 
 impl OutputDesc {
+    #[inline]
     pub fn device_name(&self) -> String {
         let len = self.desc
             .DeviceName
@@ -207,6 +209,7 @@ impl OutputDesc {
 }
 
 #[repr(C)]
+#[derive(Copy, Clone)]
 pub struct Mode {
     desc: DXGI_MODE_DESC,
 }
@@ -292,6 +295,11 @@ impl Mode {
     pub fn set_scaling(&mut self, scaling: DXGI_MODE_SCALING) {
         self.desc.Scaling = scaling;
     }
+
+    #[inline]
+    pub fn raw(&self) -> &DXGI_MODE_DESC {
+        &self.desc
+    }
 }
 
 impl fmt::Debug for Mode {
@@ -307,6 +315,7 @@ impl fmt::Debug for Mode {
     }
 }
 
+#[derive(Copy, Clone)]
 pub struct GammaControlCaps {
     desc: DXGI_GAMMA_CONTROL_CAPABILITIES,
 }
@@ -348,6 +357,7 @@ impl fmt::Debug for GammaControlCaps {
     }
 }
 
+#[derive(Copy, Clone)]
 pub struct GammaControl {
     desc: DXGI_GAMMA_CONTROL,
 }
@@ -390,6 +400,7 @@ impl GammaControl {
 }
 
 #[repr(C)]
+#[derive(Copy, Clone)]
 pub struct Rgb {
     rgb: DXGI_RGB,
 }
@@ -437,27 +448,33 @@ impl Rgb {
     }
 }
 
+#[derive(Copy, Clone)]
 pub struct FrameStatistics {
     desc: DXGI_FRAME_STATISTICS,
 }
 
 impl FrameStatistics {
+    #[inline]
     pub fn present_count(&self) -> u32 {
         self.desc.PresentCount
     }
 
+    #[inline]
     pub fn present_refresh_count(&self) -> u32 {
         self.desc.PresentRefreshCount
     }
 
+    #[inline]
     pub fn sync_refresh_count(&self) -> u32 {
         self.desc.SyncRefreshCount
     }
 
+    #[inline]
     pub fn sync_qpc_time(&self) -> i64 {
         unsafe { *self.desc.SyncQPCTime.QuadPart() }
     }
 
+    #[inline]
     pub fn sync_gpu_time(&self) -> i64 {
         unsafe { *self.desc.SyncGPUTime.QuadPart() }
     }

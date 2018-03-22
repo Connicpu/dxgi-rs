@@ -9,9 +9,11 @@ use winapi::um::winbase::{FormatMessageW, LocalFree, FORMAT_MESSAGE_ALLOCATE_BUF
                           FORMAT_MESSAGE_FROM_SYSTEM, FORMAT_MESSAGE_IGNORE_INSERTS};
 use wio::wide::FromWide;
 
+#[derive(Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Error(pub HRESULT);
 
 impl Error {
+    #[inline]
     pub fn map<T>(hr: HRESULT, success_value: T) -> Result<T, Error> {
         if SUCCEEDED(hr) {
             Ok(success_value)
@@ -20,6 +22,7 @@ impl Error {
         }
     }
 
+    #[inline]
     pub fn map_if<F, T>(hr: HRESULT, if_success: F) -> Result<T, Error> where F: FnOnce() -> T {
         if SUCCEEDED(hr) {
             Ok(if_success())
@@ -28,16 +31,19 @@ impl Error {
         }
     }
 
+    #[inline]
     pub fn from_win32(err: DWORD) -> Error {
         Error(HRESULT_FROM_WIN32(err))
     }
 
+    #[inline]
     pub fn get_message(&self) -> String {
         format_err(self.0)
     }
 }
 
 impl From<HRESULT> for Error {
+    #[inline]
     fn from(hr: HRESULT) -> Error {
         Error(hr)
     }
