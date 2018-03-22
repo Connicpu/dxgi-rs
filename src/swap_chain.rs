@@ -1,7 +1,7 @@
 use device::Device;
 use error::Error;
 use factory::Factory;
-use output::{Mode, Output};
+use output::{FrameStatistics, Mode, Output, Rgba};
 
 use std::mem;
 use std::ptr;
@@ -10,13 +10,14 @@ use boolinator::Boolinator;
 use num::rational::Ratio;
 use winapi::ctypes::c_void;
 use winapi::shared::dxgiformat::{DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT};
-use winapi::shared::dxgitype::{DXGI_MODE_SCALING, DXGI_MODE_SCANLINE_ORDER, DXGI_RATIONAL,
-                               DXGI_SAMPLE_DESC, DXGI_USAGE, DXGI_USAGE_BACK_BUFFER,
-                               DXGI_USAGE_RENDER_TARGET_OUTPUT};
+use winapi::shared::dxgitype::{DXGI_MODE_ROTATION, DXGI_MODE_SCALING, DXGI_MODE_SCANLINE_ORDER,
+                               DXGI_RATIONAL, DXGI_SAMPLE_DESC, DXGI_USAGE,
+                               DXGI_USAGE_BACK_BUFFER, DXGI_USAGE_RENDER_TARGET_OUTPUT};
 use winapi::shared::dxgi::{DXGI_SWAP_CHAIN_FLAG, DXGI_SWAP_EFFECT};
 use winapi::shared::dxgi1_2::{DXGI_SWAP_CHAIN_DESC1, IDXGISwapChain1, DXGI_ALPHA_MODE,
                               DXGI_SCALING, DXGI_SWAP_CHAIN_FULLSCREEN_DESC};
 use winapi::shared::guiddef::GUID;
+use winapi::shared::minwindef::BOOL;
 use winapi::shared::windef::HWND;
 use winapi::shared::winerror::SUCCEEDED;
 use wio::com::ComPtr;
@@ -81,19 +82,111 @@ impl SwapChain {
         }
     }
 
-    // TODO: get_fullscreen_desc
-    // TODO: get_hwnd
-    // TODO: get_core_window
-    // TODO: get_restrict_to_output
-    // TODO: get_containing_output
-    // TODO: get_frame_statistics
-    // TODO: get_last_present_count
-    // TODO: get_background_color
-    // TODO: get_rotation
+    #[inline]
+    pub fn get_fullscreen_desc(&self) -> FullscreenDesc {
+        unsafe {
+            let mut fd: FullscreenDesc = mem::uninitialized();
+            let hr = self.ptr.GetFullscreenDesc(&mut fd.desc);
+            assert!(SUCCEEDED(hr));
+            fd
+        }
+    }
 
-    // TODO: set_background_color
-    // TODO: set_rotation
-    // TODO: set_fullscreen_state
+    #[inline]
+    pub fn get_hwnd(&self) -> Option<HWND> {
+        unsafe {
+            let mut hwnd = ptr::null_mut();
+            let hr = self.ptr.GetHwnd(&mut hwnd);
+            (hr == 0).as_some(hwnd)
+        }
+    }
+
+    #[inline]
+    pub fn get_restrict_to_output(&self) -> Option<Output> {
+        unsafe {
+            let mut ptr = ptr::null_mut();
+            let hr = self.ptr.GetRestrictToOutput(&mut ptr);
+            (hr == 0).as_some_from(|| Output::from_raw(ptr))
+        }
+    }
+
+    #[inline]
+    pub fn get_containing_output(&self) -> Option<Output> {
+        unsafe {
+            let mut ptr = ptr::null_mut();
+            let hr = self.ptr.GetContainingOutput(&mut ptr);
+            (hr == 0).as_some_from(|| Output::from_raw(ptr))
+        }
+    }
+
+    #[inline]
+    pub fn get_frame_statistics(&self) -> Result<FrameStatistics, Error> {
+        unsafe {
+            let mut fs: FrameStatistics = mem::uninitialized();
+            let hr = self.ptr.GetFrameStatistics(&mut fs.desc);
+            Error::map(hr, fs)
+        }
+    }
+
+    #[inline]
+    pub fn get_last_present_count(&self) -> Option<u32> {
+        unsafe {
+            let mut count = 0;
+            let hr = self.ptr.GetLastPresentCount(&mut count);
+            (hr == 0).as_some(count)
+        }
+    }
+
+    #[inline]
+    pub fn get_background_color(&self) -> Option<Rgba> {
+        unsafe {
+            let mut color = mem::uninitialized();
+            let hr = self.ptr.GetBackgroundColor(&mut color);
+            (hr == 0).as_some_from(|| Rgba::new(color.r, color.g, color.b, color.a))
+        }
+    }
+
+    #[inline]
+    pub fn get_rotation(&self) -> Result<DXGI_MODE_ROTATION, Error> {
+        unsafe {
+            let mut rot = 0;
+            let hr = self.ptr.GetRotation(&mut rot);
+            Error::map(hr, rot)
+        }
+    }
+
+    #[inline]
+    pub fn set_background_color(&self, bg: &Rgba) -> Result<(), Error> {
+        unsafe {
+            let hr = self.ptr.SetBackgroundColor(bg as *const _ as *const _);
+            Error::map(hr, ())
+        }
+    }
+
+    #[inline]
+    pub fn set_rotation(&self, rot: DXGI_MODE_ROTATION) -> Result<(), Error> {
+        unsafe {
+            let hr = self.ptr.SetRotation(rot);
+            Error::map(hr, ())
+        }
+    }
+
+    #[inline]
+    pub fn set_fullscreen_state(
+        &self,
+        fullscreen: bool,
+        output: Option<&Output>,
+    ) -> Result<(), Error> {
+        unsafe {
+            let out = fullscreen
+                .and_option(output)
+                .map(|o| o.get_raw())
+                .unwrap_or(ptr::null_mut());
+
+            let hr = self.ptr.SetFullscreenState(fullscreen as BOOL, out);
+            Error::map(hr, ())
+        }
+    }
 
     #[inline]
     pub fn resize_buffers(&self) -> ResizeBuffers {
@@ -200,7 +293,10 @@ pub struct FullscreenDesc {
 impl FullscreenDesc {
     #[inline]
     pub fn refresh_rate(&self) -> Ratio<u32> {
-        Ratio::new(self.desc.RefreshRate.Numerator, self.desc.RefreshRate.Denominator)
+        Ratio::new(
+            self.desc.RefreshRate.Numerator,
+            self.desc.RefreshRate.Denominator,
+        )
     }
 
     #[inline]

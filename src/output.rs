@@ -13,7 +13,8 @@ use winapi::shared::dxgiformat::{DXGI_FORMAT, DXGI_FORMAT_UNKNOWN};
 use winapi::shared::dxgitype::{DXGI_GAMMA_CONTROL, DXGI_GAMMA_CONTROL_CAPABILITIES,
                                DXGI_MODE_DESC, DXGI_MODE_ROTATION, DXGI_MODE_SCALING,
                                DXGI_MODE_SCALING_UNSPECIFIED, DXGI_MODE_SCANLINE_ORDER,
-                               DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED, DXGI_RATIONAL, DXGI_RGB};
+                               DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED, DXGI_RATIONAL, DXGI_RGB,
+                               DXGI_RGBA};
 use winapi::shared::minwindef::BOOL;
 use winapi::shared::windef::{HMONITOR, RECT};
 use winapi::shared::winerror::{DXGI_ERROR_MORE_DATA, DXGI_ERROR_NOT_CURRENTLY_AVAILABLE, S_OK};
@@ -447,10 +448,54 @@ impl Rgb {
         self.rgb.Blue = b;
     }
 }
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct Rgba {
+    rgba: DXGI_RGBA,
+}
+
+impl Rgba {
+    #[inline]
+    pub fn new(r: f32, g: f32, b: f32, a: f32) -> Rgba {
+        Rgba {
+            rgba: DXGI_RGBA { r, g, b, a },
+        }
+    }
+
+    #[inline]
+    pub fn r(&self) -> f32 {
+        self.rgba.r
+    }
+
+    #[inline]
+    pub fn g(&self) -> f32 {
+        self.rgba.g
+    }
+
+    #[inline]
+    pub fn b(&self) -> f32 {
+        self.rgba.b
+    }
+
+    #[inline]
+    pub fn set_r(&mut self, r: f32) {
+        self.rgba.r = r;
+    }
+
+    #[inline]
+    pub fn set_g(&mut self, g: f32) {
+        self.rgba.g = g;
+    }
+
+    #[inline]
+    pub fn set_b(&mut self, b: f32) {
+        self.rgba.b = b;
+    }
+}
 
 #[derive(Copy, Clone)]
 pub struct FrameStatistics {
-    desc: DXGI_FRAME_STATISTICS,
+    pub(crate) desc: DXGI_FRAME_STATISTICS,
 }
 
 impl FrameStatistics {
