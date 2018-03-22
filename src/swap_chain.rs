@@ -3,14 +3,15 @@ use error::Error;
 use factory::Factory;
 use output::Output;
 
-use std::mem;
 use std::ptr;
 
 use boolinator::Boolinator;
 use num::rational::Ratio;
 use winapi::ctypes::c_void;
-use winapi::shared::dxgiformat::DXGI_FORMAT;
-use winapi::shared::dxgitype::{DXGI_MODE_SCALING, DXGI_MODE_SCANLINE_ORDER, DXGI_USAGE};
+use winapi::shared::dxgiformat::{DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT};
+use winapi::shared::dxgitype::{DXGI_MODE_SCALING, DXGI_MODE_SCANLINE_ORDER, DXGI_RATIONAL,
+                               DXGI_SAMPLE_DESC, DXGI_USAGE, DXGI_USAGE_BACK_BUFFER,
+                               DXGI_USAGE_RENDER_TARGET_OUTPUT};
 use winapi::shared::dxgi::{DXGI_SWAP_CHAIN_FLAG, DXGI_SWAP_EFFECT};
 use winapi::shared::dxgi1_2::{DXGI_SWAP_CHAIN_DESC1, IDXGISwapChain1, DXGI_ALPHA_MODE,
                               DXGI_SCALING, DXGI_SWAP_CHAIN_FULLSCREEN_DESC};
@@ -111,13 +112,14 @@ impl<'a> SwapChainHwndBuilder<'a> {
             factory,
             device,
             hwnd: ptr::null_mut(),
-            desc: def_swapchain_desc(),
-            fs_desc: def_fs_swapchain_desc(),
+            desc: DEF_DESC,
+            fs_desc: DEF_FS_DESC,
             restrict_out: None,
         }
     }
 
     pub fn build(self) -> Result<SwapChain, Error> {
+        assert!(!self.hwnd.is_null());
         unsafe {
             let factory = self.factory.get_raw();
             let mut ptr = ptr::null_mut();
@@ -151,31 +153,32 @@ impl<'a> SwapChainHwndBuilder<'a> {
     }
 }
 
-fn def_swapchain_desc() -> DXGI_SWAP_CHAIN_DESC1 {
-    use winapi::shared::dxgiformat::*;
-    use winapi::shared::dxgitype::*;
-
-    let mut desc: DXGI_SWAP_CHAIN_DESC1 = unsafe { mem::zeroed() };
-    desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    desc.SampleDesc = DXGI_SAMPLE_DESC {
+const DEF_DESC: DXGI_SWAP_CHAIN_DESC1 = DXGI_SWAP_CHAIN_DESC1 {
+    Format: DXGI_FORMAT_R8G8B8A8_UNORM,
+    SampleDesc: DXGI_SAMPLE_DESC {
         Count: 1,
         Quality: 0,
-    };
-    desc.BufferUsage = DXGI_USAGE_BACK_BUFFER | DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    desc.BufferCount = 2;
+    },
+    BufferUsage: DXGI_USAGE_BACK_BUFFER | DXGI_USAGE_RENDER_TARGET_OUTPUT,
+    BufferCount: 2,
+    AlphaMode: 0,
+    Flags: 0,
+    Width: 0,
+    Height: 0,
+    Scaling: 0,
+    Stereo: 0,
+    SwapEffect: 0,
+};
 
-    desc
-}
-
-fn def_fs_swapchain_desc() -> DXGI_SWAP_CHAIN_FULLSCREEN_DESC {
-    let mut desc: DXGI_SWAP_CHAIN_FULLSCREEN_DESC = unsafe { mem::zeroed() };
-
-    desc.RefreshRate.Numerator = 60;
-    desc.RefreshRate.Denominator = 1;
-    desc.Windowed = 1;
-
-    desc
-}
+const DEF_FS_DESC: DXGI_SWAP_CHAIN_FULLSCREEN_DESC = DXGI_SWAP_CHAIN_FULLSCREEN_DESC {
+    RefreshRate: DXGI_RATIONAL {
+        Numerator: 60,
+        Denominator: 1,
+    },
+    Windowed: 1,
+    Scaling: 0,
+    ScanlineOrdering: 0,
+};
 
 macro_rules! impl_scbuilder_desc_fns {
     ($builder:ident) => {
