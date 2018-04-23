@@ -1,17 +1,21 @@
 use error::Error;
+use factory::Factory;
 use output::Output;
 
-use std::fmt;
-use std::ptr;
-use std::mem;
 use std::ffi::OsString;
+use std::fmt;
+use std::mem;
+use std::ptr;
 
+use winapi::Interface;
 use winapi::shared::dxgi::{DXGI_ADAPTER_DESC1, IDXGIAdapter1};
-use winapi::shared::winerror::{DXGI_ERROR_NOT_FOUND, S_OK};
+use winapi::shared::dxgi1_2::IDXGIFactory2;
+use winapi::shared::winerror::{DXGI_ERROR_NOT_FOUND, SUCCEEDED, S_OK};
 use winapi::um::winnt::LUID;
 use wio::com::ComPtr;
 use wio::wide::FromWide;
 
+#[derive(Clone, PartialEq)]
 pub struct Adapter {
     ptr: ComPtr<IDXGIAdapter1>,
 }
@@ -48,6 +52,16 @@ impl Adapter {
         OutputIter {
             adapter: &self.ptr,
             output: 0,
+        }
+    }
+
+    #[inline]
+    pub fn get_factory(&self) -> Factory {
+        unsafe {
+            let mut factory = ptr::null_mut();
+            let hr = self.ptr.GetParent(&IDXGIFactory2::uuidof(), &mut factory);
+            assert!(SUCCEEDED(hr));
+            Factory::from_raw(factory as *mut _)
         }
     }
 }

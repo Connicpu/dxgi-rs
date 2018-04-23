@@ -22,6 +22,7 @@ use winapi::shared::windef::HWND;
 use winapi::shared::winerror::SUCCEEDED;
 use wio::com::ComPtr;
 
+#[derive(Clone, PartialEq)]
 pub struct SwapChain {
     ptr: ComPtr<IDXGISwapChain1>,
 }

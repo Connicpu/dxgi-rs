@@ -10,6 +10,8 @@ fn main() {
     let factory = dxgi::factory::Factory::new().unwrap();
 
     for adapter in factory.adapters() {
+        assert!(adapter.get_factory() == factory);
+
         let desc = adapter.get_desc();
         println!(
             "Adapter [{}, {}MB]",

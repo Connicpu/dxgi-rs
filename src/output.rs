@@ -22,6 +22,7 @@ use winapi::um::unknwnbase::IUnknown;
 use wio::com::ComPtr;
 use wio::wide::FromWide;
 
+#[derive(Clone, PartialEq)]
 pub struct Output {
     ptr: ComPtr<IDXGIOutput>,
 }

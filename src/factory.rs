@@ -13,6 +13,7 @@ use winapi::shared::windef::HWND;
 use winapi::shared::winerror::{DXGI_ERROR_NOT_FOUND, SUCCEEDED, S_OK};
 use wio::com::ComPtr;
 
+#[derive(Clone, PartialEq)]
 pub struct Factory {
     ptr: ComPtr<IDXGIFactory2>,
 }

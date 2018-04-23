@@ -9,6 +9,7 @@ use winapi::shared::minwindef::UINT;
 use winapi::shared::winerror::SUCCEEDED;
 use wio::com::ComPtr;
 
+#[derive(Clone, PartialEq)]
 pub struct Surface {
     ptr: ComPtr<IDXGISurface>,
 }

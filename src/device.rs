@@ -7,6 +7,7 @@ use winapi::Interface;
 use winapi::shared::dxgi::{IDXGIDevice, IDXGIAdapter1};
 use wio::com::ComPtr;
 
+#[derive(Clone, PartialEq)]
 pub struct Device {
     ptr: ComPtr<IDXGIDevice>,
 }
