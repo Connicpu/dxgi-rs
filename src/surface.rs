@@ -3,8 +3,8 @@ use error::Error;
 use std::mem;
 use std::slice;
 
-use winapi::shared::dxgiformat::DXGI_FORMAT;
 use winapi::shared::dxgi::{IDXGISurface, DXGI_MAPPED_RECT, DXGI_SURFACE_DESC};
+use winapi::shared::dxgiformat::DXGI_FORMAT;
 use winapi::shared::minwindef::UINT;
 use winapi::shared::winerror::SUCCEEDED;
 use wio::com::ComPtr;
@@ -44,7 +44,7 @@ impl Surface {
         write: bool,
         discard: bool,
     ) -> Result<SurfaceMap<'a>, Error> {
-            // TODO: Wait for winapi to be updated with my PR adding these constants
+        // TODO: Wait for winapi to be updated with my PR adding these constants
         const DXGI_MAP_READ: UINT = 1;
         const DXGI_MAP_WRITE: UINT = 2;
         const DXGI_MAP_DISCARD: UINT = 4;
@@ -125,27 +125,25 @@ pub struct SurfaceMap<'a> {
 
 impl<'a> SurfaceMap<'a> {
     #[inline]
-    pub fn row<T>(&self, row: u32) -> &[T]
+    pub unsafe fn row<T>(&self, row: u32) -> &[T]
     where
         T: Copy,
     {
-        unsafe {
-            assert!(row < self.desc.height());
-            let len = (self.desc.width() as usize * self.elem_size) / mem::size_of::<T>();
-            slice::from_raw_parts(self.map.pBits as *mut _, len)
-        }
+        assert!(row < self.desc.height());
+        let len = (self.desc.width() as usize * self.elem_size) / mem::size_of::<T>();
+        let ptr = (self.map.pBits as *mut u8).offset(self.map.Pitch as isize * row as isize);
+        slice::from_raw_parts(ptr as *mut _, len)
     }
 
     #[inline]
-    pub fn row_mut<T>(&mut self, row: u32) -> &mut [T]
+    pub unsafe fn row_mut<T>(&mut self, row: u32) -> &mut [T]
     where
         T: Copy,
     {
-        unsafe {
-            assert!(row < self.desc.height());
-            let len = (self.desc.width() as usize * self.elem_size) / mem::size_of::<T>();
-            slice::from_raw_parts_mut(self.map.pBits as *mut _, len)
-        }
+        assert!(row < self.desc.height());
+        let len = (self.desc.width() as usize * self.elem_size) / mem::size_of::<T>();
+        let ptr = (self.map.pBits as *mut u8).offset(self.map.Pitch as isize * row as isize);
+        slice::from_raw_parts_mut(ptr as *mut _, len)
     }
 }
 
