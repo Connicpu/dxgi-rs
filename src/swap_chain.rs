@@ -222,7 +222,7 @@ unsafe impl Sync for SwapChain {}
 /// This should be implemented for e.g. d3d11::Texture2d
 pub unsafe trait BackbufferTexture {
     fn uuidof() -> GUID;
-    fn from_raw(raw: *mut c_void) -> Self;
+    unsafe fn from_raw(raw: *mut c_void) -> Self;
 }
 
 pub struct SwapChainDesc {
