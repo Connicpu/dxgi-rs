@@ -16,18 +16,6 @@ pub struct Surface {
 
 impl Surface {
     #[inline]
-    pub unsafe fn from_raw(ptr: *mut IDXGISurface) -> Surface {
-        Surface {
-            ptr: ComPtr::from_raw(ptr),
-        }
-    }
-
-    #[inline]
-    pub unsafe fn get_raw(&self) -> *mut IDXGISurface {
-        self.ptr.as_raw()
-    }
-
-    #[inline]
     pub fn get_desc(&self) -> SurfaceDesc {
         unsafe {
             let mut desc: SurfaceDesc = mem::uninitialized();
@@ -78,6 +66,18 @@ impl Surface {
             elem_size,
             surface: &self.ptr,
         })
+    }
+    
+    #[inline]
+    pub unsafe fn from_raw(ptr: *mut IDXGISurface) -> Surface {
+        Surface {
+            ptr: ComPtr::from_raw(ptr),
+        }
+    }
+
+    #[inline]
+    pub unsafe fn get_raw(&self) -> *mut IDXGISurface {
+        self.ptr.as_raw()
     }
 }
 

@@ -1,6 +1,8 @@
 use device::Device;
 use error::Error;
 use factory::Factory;
+use flags::{AlphaMode, Format, ModeRotation, ModeScaling, ModeScanlineOrder, PresentFlags,
+            Scaling, SwapChainFlags, SwapEffect, UsageFlags};
 use output::{FrameStatistics, Mode, Output, Rgba};
 
 use std::mem;
@@ -9,13 +11,10 @@ use std::ptr;
 use boolinator::Boolinator;
 use num::rational::Ratio;
 use winapi::ctypes::c_void;
-use winapi::shared::dxgiformat::{DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT};
-use winapi::shared::dxgitype::{DXGI_MODE_ROTATION, DXGI_MODE_SCALING, DXGI_MODE_SCANLINE_ORDER,
-                               DXGI_RATIONAL, DXGI_SAMPLE_DESC, DXGI_USAGE,
-                               DXGI_USAGE_BACK_BUFFER, DXGI_USAGE_RENDER_TARGET_OUTPUT};
-use winapi::shared::dxgi::{DXGI_SWAP_CHAIN_FLAG, DXGI_SWAP_EFFECT};
-use winapi::shared::dxgi1_2::{DXGI_SWAP_CHAIN_DESC1, IDXGISwapChain1, DXGI_ALPHA_MODE,
-                              DXGI_SCALING, DXGI_SWAP_CHAIN_FULLSCREEN_DESC};
+use winapi::shared::dxgi::DXGI_SWAP_EFFECT;
+use winapi::shared::dxgi1_2::{DXGI_SWAP_CHAIN_DESC1, IDXGISwapChain1,
+                              DXGI_SWAP_CHAIN_FULLSCREEN_DESC};
+use winapi::shared::dxgitype::{DXGI_RATIONAL, DXGI_SAMPLE_DESC};
 use winapi::shared::guiddef::GUID;
 use winapi::shared::minwindef::BOOL;
 use winapi::shared::windef::HWND;
@@ -29,21 +28,14 @@ pub struct SwapChain {
 
 impl SwapChain {
     #[inline]
-    pub unsafe fn from_raw(ptr: *mut IDXGISwapChain1) -> SwapChain {
-        SwapChain {
-            ptr: ComPtr::from_raw(ptr),
-        }
+    pub fn create_hwnd<'a>(factory: &'a Factory, device: &'a Device) -> SwapChainHwndBuilder<'a> {
+        SwapChainHwndBuilder::create(factory, device)
     }
 
     #[inline]
-    pub unsafe fn get_raw(&self) -> *mut IDXGISwapChain1 {
-        self.ptr.as_raw()
-    }
-
-    #[inline]
-    pub fn present(&self, sync_interval: u32, flags: u32) -> Result<(), Error> {
+    pub fn present(&self, sync_interval: u32, flags: PresentFlags) -> Result<(), Error> {
         unsafe {
-            let hr = self.ptr.Present(sync_interval, flags);
+            let hr = self.ptr.Present(sync_interval, flags.0);
             Error::map(hr, ())
         }
     }
@@ -148,10 +140,11 @@ impl SwapChain {
     }
 
     #[inline]
-    pub fn get_rotation(&self) -> Result<DXGI_MODE_ROTATION, Error> {
+    pub fn get_rotation(&self) -> Result<ModeRotation, Error> {
         unsafe {
             let mut rot = 0;
             let hr = self.ptr.GetRotation(&mut rot);
+            let rot = ModeRotation::try_from(rot).unwrap_or(ModeRotation::Unspecified);
             Error::map(hr, rot)
         }
     }
@@ -165,9 +158,9 @@ impl SwapChain {
     }
 
     #[inline]
-    pub fn set_rotation(&self, rot: DXGI_MODE_ROTATION) -> Result<(), Error> {
+    pub fn set_rotation(&self, rot: ModeRotation) -> Result<(), Error> {
         unsafe {
-            let hr = self.ptr.SetRotation(rot);
+            let hr = self.ptr.SetRotation(rot as u32);
             Error::map(hr, ())
         }
     }
@@ -209,6 +202,18 @@ impl SwapChain {
             Error::map(hr, ())
         }
     }
+
+    #[inline]
+    pub unsafe fn from_raw(ptr: *mut IDXGISwapChain1) -> SwapChain {
+        SwapChain {
+            ptr: ComPtr::from_raw(ptr),
+        }
+    }
+
+    #[inline]
+    pub unsafe fn get_raw(&self) -> *mut IDXGISwapChain1 {
+        self.ptr.as_raw()
+    }
 }
 
 unsafe impl Send for SwapChain {}
@@ -236,8 +241,8 @@ impl SwapChainDesc {
     }
 
     #[inline]
-    pub fn format(&self) -> DXGI_FORMAT {
-        self.desc.Format
+    pub fn format(&self) -> Format {
+        Format::try_from(self.desc.Format).unwrap_or(Format::Unknown)
     }
 
     #[inline]
@@ -256,8 +261,8 @@ impl SwapChainDesc {
     }
 
     #[inline]
-    pub fn buffer_usage(&self) -> DXGI_USAGE {
-        self.desc.BufferUsage
+    pub fn buffer_usage(&self) -> UsageFlags {
+        UsageFlags(self.desc.BufferUsage)
     }
 
     #[inline]
@@ -266,23 +271,23 @@ impl SwapChainDesc {
     }
 
     #[inline]
-    pub fn scaling(&self) -> DXGI_SCALING {
-        self.desc.Scaling
+    pub fn scaling(&self) -> Scaling {
+        Scaling::try_from(self.desc.Scaling).unwrap_or(Scaling::Stretch)
     }
 
     #[inline]
-    pub fn swap_effect(&self) -> DXGI_SWAP_EFFECT {
-        self.desc.SwapEffect
+    pub fn swap_effect(&self) -> SwapEffect {
+        SwapEffect::try_from(self.desc.SwapEffect).unwrap_or(SwapEffect::Discard)
     }
 
     #[inline]
-    pub fn alpha_mode(&self) -> DXGI_ALPHA_MODE {
-        self.desc.AlphaMode
+    pub fn alpha_mode(&self) -> AlphaMode {
+        AlphaMode::try_from(self.desc.AlphaMode).unwrap_or(AlphaMode::Unspecified)
     }
 
     #[inline]
-    pub fn flags(&self) -> DXGI_SWAP_CHAIN_FLAG {
-        self.desc.Flags
+    pub fn flags(&self) -> SwapChainFlags {
+        SwapChainFlags(self.desc.Flags)
     }
 }
 
@@ -301,13 +306,14 @@ impl FullscreenDesc {
     }
 
     #[inline]
-    pub fn scanline_ordering(&self) -> DXGI_MODE_SCANLINE_ORDER {
-        self.desc.ScanlineOrdering
+    pub fn scanline_ordering(&self) -> ModeScanlineOrder {
+        ModeScanlineOrder::try_from(self.desc.ScanlineOrdering)
+            .unwrap_or(ModeScanlineOrder::Unspecified)
     }
 
     #[inline]
-    pub fn scaling(&self) -> DXGI_MODE_SCALING {
-        self.desc.Scaling
+    pub fn scaling(&self) -> ModeScaling {
+        ModeScaling::try_from(self.desc.Scaling).unwrap_or(ModeScaling::Unspecified)
     }
 
     #[inline]
@@ -322,8 +328,8 @@ pub struct ResizeBuffers<'a> {
     count: u32,
     width: u32,
     height: u32,
-    format: DXGI_FORMAT,
-    flags: DXGI_SWAP_CHAIN_FLAG,
+    format: Format,
+    flags: SwapChainFlags,
 }
 
 impl<'a> ResizeBuffers<'a> {
@@ -334,8 +340,8 @@ impl<'a> ResizeBuffers<'a> {
                 self.count,
                 self.width,
                 self.height,
-                self.format,
-                self.flags,
+                self.format as u32,
+                self.flags.0,
             );
 
             Error::map(hr, ())
@@ -350,7 +356,7 @@ impl<'a> ResizeBuffers<'a> {
     }
 
     #[inline]
-    pub fn format(mut self, format: DXGI_FORMAT) -> Self {
+    pub fn format(mut self, format: Format) -> Self {
         self.format = format;
         self
     }
@@ -362,7 +368,7 @@ impl<'a> ResizeBuffers<'a> {
     }
 
     #[inline]
-    pub fn flags(mut self, flags: DXGI_SWAP_CHAIN_FLAG) -> Self {
+    pub fn flags(mut self, flags: SwapChainFlags) -> Self {
         self.flags = flags;
         self
     }
@@ -370,7 +376,7 @@ impl<'a> ResizeBuffers<'a> {
     #[inline]
     pub fn modify_flags<F>(mut self, func: F) -> Self
     where
-        F: FnOnce(DXGI_SWAP_CHAIN_FLAG) -> DXGI_SWAP_CHAIN_FLAG,
+        F: FnOnce(SwapChainFlags) -> SwapChainFlags,
     {
         self.flags = func(self.flags);
         self
@@ -437,12 +443,12 @@ impl<'a> SwapChainHwndBuilder<'a> {
 }
 
 const DEF_DESC: DXGI_SWAP_CHAIN_DESC1 = DXGI_SWAP_CHAIN_DESC1 {
-    Format: DXGI_FORMAT_R8G8B8A8_UNORM,
+    Format: Format::R8G8B8A8Unorm as u32,
     SampleDesc: DXGI_SAMPLE_DESC {
         Count: 1,
         Quality: 0,
     },
-    BufferUsage: DXGI_USAGE_BACK_BUFFER | DXGI_USAGE_RENDER_TARGET_OUTPUT,
+    BufferUsage: UsageFlags::BACK_BUFFER.0 | UsageFlags::RENDER_TARGET_OUTPUT.0,
     BufferCount: 2,
     AlphaMode: 0,
     Flags: 0,
@@ -465,7 +471,7 @@ const DEF_FS_DESC: DXGI_SWAP_CHAIN_FULLSCREEN_DESC = DXGI_SWAP_CHAIN_FULLSCREEN_
 
 macro_rules! impl_scbuilder_desc_fns {
     ($builder:ident) => {
-        impl<'a> $builder <'a> {
+        impl<'a> $builder<'a> {
             #[inline]
             /// Default is 0x0 (i.e. auto-detect)
             pub fn size(mut self, width: u32, height: u32) -> Self {
@@ -476,8 +482,8 @@ macro_rules! impl_scbuilder_desc_fns {
 
             #[inline]
             /// Default RGBA8 UNORM
-            pub fn format(mut self, format: DXGI_FORMAT) -> Self {
-                self.desc.Format = format;
+            pub fn format(mut self, format: Format) -> Self {
+                self.desc.Format = format as u32;
                 self
             }
 
@@ -491,8 +497,8 @@ macro_rules! impl_scbuilder_desc_fns {
 
             #[inline]
             /// Default is BACK_BUFFER | RENDER_TARGET_OUTPUT
-            pub fn buffer_usage(mut self, usage: DXGI_USAGE) -> Self {
-                self.desc.BufferUsage = usage;
+            pub fn buffer_usage(mut self, usage: UsageFlags) -> Self {
+                self.desc.BufferUsage = usage.0;
                 self
             }
 
@@ -505,8 +511,8 @@ macro_rules! impl_scbuilder_desc_fns {
 
             #[inline]
             /// Default is STRETCH
-            pub fn scaling(mut self, scaling: DXGI_SCALING) -> Self {
-                self.desc.Scaling = scaling;
+            pub fn scaling(mut self, scaling: Scaling) -> Self {
+                self.desc.Scaling = scaling as u32;
                 self
             }
 
@@ -519,15 +525,15 @@ macro_rules! impl_scbuilder_desc_fns {
 
             #[inline]
             /// Default is UNSPECIFIED
-            pub fn alpha_mode(mut self, mode: DXGI_ALPHA_MODE) -> Self {
-                self.desc.AlphaMode = mode;
+            pub fn alpha_mode(mut self, mode: AlphaMode) -> Self {
+                self.desc.AlphaMode = mode as u32;
                 self
             }
 
             #[inline]
             /// None specified by default
-            pub fn flags(mut self, flags: DXGI_SWAP_CHAIN_FLAG) -> Self {
-                self.desc.Flags = flags;
+            pub fn flags(mut self, flags: SwapChainFlags) -> Self {
+                self.desc.Flags = flags.0;
                 self
             }
 
@@ -541,15 +547,15 @@ macro_rules! impl_scbuilder_desc_fns {
 
             #[inline]
             /// Default is UNSPECIFIED
-            pub fn scanline_ordering(mut self, order: DXGI_MODE_SCANLINE_ORDER) -> Self {
-                self.fs_desc.ScanlineOrdering = order;
+            pub fn scanline_ordering(mut self, order: ModeScanlineOrder) -> Self {
+                self.fs_desc.ScanlineOrdering = order as u32;
                 self
             }
 
             #[inline]
             /// Default is UNSPECIFIED
-            pub fn fullscreen_scaling(mut self, scaling: DXGI_MODE_SCALING) -> Self {
-                self.fs_desc.Scaling = scaling;
+            pub fn fullscreen_scaling(mut self, scaling: ModeScaling) -> Self {
+                self.fs_desc.Scaling = scaling as u32;
                 self
             }
 

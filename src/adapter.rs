@@ -22,18 +22,6 @@ pub struct Adapter {
 
 impl Adapter {
     #[inline]
-    pub unsafe fn from_raw(ptr: *mut IDXGIAdapter1) -> Adapter {
-        Adapter {
-            ptr: ComPtr::from_raw(ptr),
-        }
-    }
-
-    #[inline]
-    pub unsafe fn get_raw(&self) -> *mut IDXGIAdapter1 {
-        self.ptr.as_raw()
-    }
-
-    #[inline]
     pub fn get_desc(&self) -> AdapterDesc {
         unsafe {
             let mut desc = mem::uninitialized();
@@ -63,6 +51,18 @@ impl Adapter {
             assert!(SUCCEEDED(hr));
             Factory::from_raw(factory as *mut _)
         }
+    }
+
+    #[inline]
+    pub unsafe fn from_raw(ptr: *mut IDXGIAdapter1) -> Adapter {
+        Adapter {
+            ptr: ComPtr::from_raw(ptr),
+        }
+    }
+
+    #[inline]
+    pub unsafe fn get_raw(&self) -> *mut IDXGIAdapter1 {
+        self.ptr.as_raw()
     }
 }
 

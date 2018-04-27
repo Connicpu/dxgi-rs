@@ -32,18 +32,6 @@ impl Factory {
     }
 
     #[inline]
-    pub unsafe fn from_raw(ptr: *mut IDXGIFactory2) -> Factory {
-        Factory {
-            ptr: ComPtr::from_raw(ptr),
-        }
-    }
-
-    #[inline]
-    pub unsafe fn get_raw(&self) -> *mut IDXGIFactory2 {
-        self.ptr.as_raw()
-    }
-
-    #[inline]
     pub fn adapters(&self) -> AdapterIter {
         AdapterIter {
             factory: &self.ptr,
@@ -81,6 +69,18 @@ impl Factory {
     #[inline]
     pub fn create_swapchain_for_hwnd<'a>(&'a self, device: &'a Device) -> SwapChainHwndBuilder<'a> {
         SwapChainHwndBuilder::create(self, device)
+    }
+
+    #[inline]
+    pub unsafe fn from_raw(ptr: *mut IDXGIFactory2) -> Factory {
+        Factory {
+            ptr: ComPtr::from_raw(ptr),
+        }
+    }
+
+    #[inline]
+    pub unsafe fn get_raw(&self) -> *mut IDXGIFactory2 {
+        self.ptr.as_raw()
     }
 }
 

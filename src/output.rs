@@ -29,18 +29,6 @@ pub struct Output {
 
 impl Output {
     #[inline]
-    pub unsafe fn from_raw(ptr: *mut IDXGIOutput) -> Output {
-        Output {
-            ptr: ComPtr::from_raw(ptr),
-        }
-    }
-
-    #[inline]
-    pub unsafe fn get_raw(&self) -> *mut IDXGIOutput {
-        self.ptr.as_raw()
-    }
-
-    #[inline]
     pub fn get_desc(&self) -> OutputDesc {
         unsafe {
             let mut desc = mem::uninitialized();
@@ -166,6 +154,18 @@ impl Output {
             let hr = self.ptr.GetFrameStatistics(&mut stats.desc);
             Error::map(hr, stats)
         }
+    }
+    
+    #[inline]
+    pub unsafe fn from_raw(ptr: *mut IDXGIOutput) -> Output {
+        Output {
+            ptr: ComPtr::from_raw(ptr),
+        }
+    }
+
+    #[inline]
+    pub unsafe fn get_raw(&self) -> *mut IDXGIOutput {
+        self.ptr.as_raw()
     }
 }
 

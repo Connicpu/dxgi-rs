@@ -9,7 +9,8 @@ pub use adapter::Adapter;
 pub use device::Device;
 pub use error::Error;
 pub use factory::Factory;
-pub use flags::{Format};
+pub use flags::{AlphaMode, Format, ModeRotation, ModeScaling, ModeScanlineOrder, PresentFlags,
+                Scaling, SwapChainFlags, SwapEffect, UsageFlags};
 pub use output::Output;
 pub use surface::Surface;
 pub use swap_chain::SwapChain;
