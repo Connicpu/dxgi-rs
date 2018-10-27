@@ -1,24 +1,26 @@
 use device::Device;
+use enums::{
+    AlphaMode, Format, ModeRotation, ModeScaling, ModeScanlineOrder, PresentFlags, Scaling,
+    SwapChainFlags, SwapEffect, UsageFlags,
+};
 use error::Error;
 use factory::Factory;
-use flags::{AlphaMode, Format, ModeRotation, ModeScaling, ModeScanlineOrder, PresentFlags,
-            Scaling, SwapChainFlags, SwapEffect, UsageFlags};
 use output::{FrameStatistics, Mode, Output, Rgba};
+use ratio::Ratio;
 
 use std::mem;
 use std::ptr;
 
-use boolinator::Boolinator;
-use num::rational::Ratio;
 use winapi::ctypes::c_void;
 use winapi::shared::dxgi::DXGI_SWAP_EFFECT;
-use winapi::shared::dxgi1_2::{DXGI_SWAP_CHAIN_DESC1, IDXGISwapChain1,
-                              DXGI_SWAP_CHAIN_FULLSCREEN_DESC};
+use winapi::shared::dxgi1_2::{
+    IDXGISwapChain1, DXGI_SWAP_CHAIN_DESC1, DXGI_SWAP_CHAIN_FULLSCREEN_DESC,
+};
 use winapi::shared::dxgitype::{DXGI_RATIONAL, DXGI_SAMPLE_DESC};
 use winapi::shared::guiddef::GUID;
 use winapi::shared::minwindef::BOOL;
 use winapi::shared::windef::HWND;
-use winapi::shared::winerror::SUCCEEDED;
+use winapi::shared::winerror::{SUCCEEDED, S_OK};
 use wio::com::ComPtr;
 
 #[derive(Clone, PartialEq)]
@@ -59,9 +61,16 @@ impl SwapChain {
             let mut isfs = 0;
             let mut out = ptr::null_mut();
             let hr = self.ptr.GetFullscreenState(&mut isfs, &mut out);
-            let isfs = isfs != 0;
 
-            Error::map_if(hr, || isfs.as_some_from(|| Output::from_raw(out)))
+            if SUCCEEDED(hr) {
+                if isfs != 0 {
+                    Ok(Some(Output::from_raw(out)))
+                } else {
+                    Ok(None)
+                }
+            } else {
+                Err(hr.into())
+            }
         }
     }
 
@@ -90,7 +99,11 @@ impl SwapChain {
         unsafe {
             let mut hwnd = ptr::null_mut();
             let hr = self.ptr.GetHwnd(&mut hwnd);
-            (hr == 0).as_some(hwnd)
+            if hr == S_OK {
+                Some(hwnd)
+            } else {
+                None
+            }
         }
     }
 
@@ -99,7 +112,11 @@ impl SwapChain {
         unsafe {
             let mut ptr = ptr::null_mut();
             let hr = self.ptr.GetRestrictToOutput(&mut ptr);
-            (hr == 0).as_some_from(|| Output::from_raw(ptr))
+            if hr == S_OK {
+                Some(Output::from_raw(ptr))
+            } else {
+                None
+            }
         }
     }
 
@@ -108,7 +125,11 @@ impl SwapChain {
         unsafe {
             let mut ptr = ptr::null_mut();
             let hr = self.ptr.GetContainingOutput(&mut ptr);
-            (hr == 0).as_some_from(|| Output::from_raw(ptr))
+            if hr == S_OK {
+                Some(Output::from_raw(ptr))
+            } else {
+                None
+            }
         }
     }
 
@@ -126,7 +147,11 @@ impl SwapChain {
         unsafe {
             let mut count = 0;
             let hr = self.ptr.GetLastPresentCount(&mut count);
-            (hr == 0).as_some(count)
+            if hr == S_OK {
+                Some(count)
+            } else {
+                None
+            }
         }
     }
 
@@ -135,7 +160,11 @@ impl SwapChain {
         unsafe {
             let mut color = mem::uninitialized();
             let hr = self.ptr.GetBackgroundColor(&mut color);
-            (hr == 0).as_some_from(|| Rgba::new(color.r, color.g, color.b, color.a))
+            if hr == S_OK {
+                Some(Rgba::new(color.r, color.g, color.b, color.a))
+            } else {
+                None
+            }
         }
     }
 
@@ -144,7 +173,7 @@ impl SwapChain {
         unsafe {
             let mut rot = 0;
             let hr = self.ptr.GetRotation(&mut rot);
-            let rot = ModeRotation::try_from(rot).unwrap_or(ModeRotation::Unspecified);
+            let rot = ModeRotation::from_u32(rot).unwrap_or(ModeRotation::Unspecified);
             Error::map(hr, rot)
         }
     }
@@ -172,10 +201,8 @@ impl SwapChain {
         output: Option<&Output>,
     ) -> Result<(), Error> {
         unsafe {
-            let out = fullscreen
-                .and_option(output)
-                .map(|o| o.get_raw())
-                .unwrap_or(ptr::null_mut());
+            let out = if fullscreen { output } else { None };
+            let out = out.map(|o| o.get_raw()).unwrap_or(ptr::null_mut());
 
             let hr = self.ptr.SetFullscreenState(fullscreen as BOOL, out);
             Error::map(hr, ())
@@ -242,7 +269,7 @@ impl SwapChainDesc {
 
     #[inline]
     pub fn format(&self) -> Format {
-        Format::try_from(self.desc.Format).unwrap_or(Format::Unknown)
+        Format::from_u32(self.desc.Format).unwrap_or(Format::Unknown)
     }
 
     #[inline]
@@ -272,17 +299,17 @@ impl SwapChainDesc {
 
     #[inline]
     pub fn scaling(&self) -> Scaling {
-        Scaling::try_from(self.desc.Scaling).unwrap_or(Scaling::Stretch)
+        Scaling::from_u32(self.desc.Scaling).unwrap_or(Scaling::Stretch)
     }
 
     #[inline]
     pub fn swap_effect(&self) -> SwapEffect {
-        SwapEffect::try_from(self.desc.SwapEffect).unwrap_or(SwapEffect::Discard)
+        SwapEffect::from_u32(self.desc.SwapEffect).unwrap_or(SwapEffect::Discard)
     }
 
     #[inline]
     pub fn alpha_mode(&self) -> AlphaMode {
-        AlphaMode::try_from(self.desc.AlphaMode).unwrap_or(AlphaMode::Unspecified)
+        AlphaMode::from_u32(self.desc.AlphaMode).unwrap_or(AlphaMode::Unspecified)
     }
 
     #[inline]
@@ -298,7 +325,7 @@ pub struct FullscreenDesc {
 
 impl FullscreenDesc {
     #[inline]
-    pub fn refresh_rate(&self) -> Ratio<u32> {
+    pub fn refresh_rate(&self) -> Ratio {
         Ratio::new(
             self.desc.RefreshRate.Numerator,
             self.desc.RefreshRate.Denominator,
@@ -307,13 +334,13 @@ impl FullscreenDesc {
 
     #[inline]
     pub fn scanline_ordering(&self) -> ModeScanlineOrder {
-        ModeScanlineOrder::try_from(self.desc.ScanlineOrdering)
+        ModeScanlineOrder::from_u32(self.desc.ScanlineOrdering)
             .unwrap_or(ModeScanlineOrder::Unspecified)
     }
 
     #[inline]
     pub fn scaling(&self) -> ModeScaling {
-        ModeScaling::try_from(self.desc.Scaling).unwrap_or(ModeScaling::Unspecified)
+        ModeScaling::from_u32(self.desc.Scaling).unwrap_or(ModeScaling::Unspecified)
     }
 
     #[inline]
@@ -539,9 +566,9 @@ macro_rules! impl_scbuilder_desc_fns {
 
             #[inline]
             /// Default is 60/1
-            pub fn refresh_rate(mut self, hz: Ratio<u32>) -> Self {
-                self.fs_desc.RefreshRate.Numerator = *hz.numer();
-                self.fs_desc.RefreshRate.Denominator = *hz.denom();
+            pub fn refresh_rate(mut self, hz: Ratio) -> Self {
+                self.fs_desc.RefreshRate.Numerator = hz.numerator;
+                self.fs_desc.RefreshRate.Denominator = hz.denominator;
                 self
             }
 

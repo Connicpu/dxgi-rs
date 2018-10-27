@@ -1,8 +1,7 @@
 extern crate dxgi;
-extern crate winapi;
 extern crate windows_dpi;
 
-use winapi::shared::dxgiformat::DXGI_FORMAT_R8G8B8A8_UNORM;
+use dxgi::Format;
 
 fn main() {
     windows_dpi::enable_dpi();
@@ -30,13 +29,13 @@ fn main() {
             );
 
             let mut mode_find = dxgi::output::Mode::new();
-            mode_find.set_format(DXGI_FORMAT_R8G8B8A8_UNORM);
+            mode_find.set_format(Format::R8G8B8A8Unorm);
             mode_find.set_width((coords.right - coords.left) as u32);
             mode_find.set_height((coords.bottom - coords.top) as u32);
             let primary_mode = output.find_closest_matching_mode(&mode_find, None).unwrap();
 
             let refresh = primary_mode.refresh_rate();
-            let hz = *refresh.numer() as f64 / *refresh.denom() as f64;
+            let hz = refresh.numerator as f64 / refresh.denominator as f64;
             println!(
                 "---- Primary Mode [{}x{} @ {}Hz]",
                 primary_mode.width(),
