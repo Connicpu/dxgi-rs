@@ -16,11 +16,14 @@ use wio::com::ComPtr;
 use wio::wide::FromWide;
 
 #[derive(Clone, PartialEq)]
+/// Represents a display sub-system (including one or more GPUs, DACs, and
+/// video memory).
 pub struct Adapter {
     ptr: ComPtr<IDXGIAdapter1>,
 }
 
 impl Adapter {
+    /// Gets a description of the adapter (or video card).
     #[inline]
     pub fn get_desc(&self) -> AdapterDesc {
         unsafe {
@@ -35,6 +38,8 @@ impl Adapter {
         }
     }
 
+    /// Create an iterator that enumerates over the outputs associated with
+    /// this adapter.
     #[inline]
     pub fn outputs(&self) -> OutputIter {
         OutputIter {
@@ -43,6 +48,7 @@ impl Adapter {
         }
     }
 
+    /// Get the DXGI Factory associated with this adapter.
     #[inline]
     pub fn get_factory(&self) -> Factory {
         unsafe {

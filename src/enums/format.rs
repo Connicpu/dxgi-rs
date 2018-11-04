@@ -155,10 +155,10 @@
 /// compresses on blocks of 4x4 texels). In the texture sampler, compressed
 /// formats are always decompressed before texture filtering.
 ///
-/// [1]: struct.BindFlags.html#VERTEX_BUFFER
-/// [2]: struct.BindFlags.html#INDEX_BUFFER
-/// [3]: struct.BindFlags.html#CONSTANT_BUFFER
-/// [4]: struct.BindFlags.html#STREAM_OUTPUT
+/// [1]: https://docs.rs/direct3d11/0.1.7/direct3d11/flags/struct.BindFlags.html#VERTEX_BUFFER
+/// [2]: https://docs.rs/direct3d11/0.1.7/direct3d11/flags/struct.BindFlags.html#INDEX_BUFFER
+/// [3]: https://docs.rs/direct3d11/0.1.7/direct3d11/flags/struct.BindFlags.html#CONSTANT_BUFFER
+/// [4]: https://docs.rs/direct3d11/0.1.7/direct3d11/flags/struct.BindFlags.html#STREAM_OUTPUT
 /// [5]: #variant.R8G8_B8G8Unorm
 /// [6]: https://msdn.microsoft.com/en-us/library/windows/desktop/ff476876(v=vs.85).aspx#Overview
 /// [7]: https://msdn.microsoft.com/en-us/library/windows/desktop/mt426648(v=vs.85).aspx
@@ -945,7 +945,7 @@ pub enum Format {
     /// reconstructs RGBA automatically on read and before filtering. This
     /// Direct3D hardware behavior is legacy and is likely not useful any
     /// more. With this view format, the mapping to the view channel is
-    /// Y0->R8, U0->G8[0], Y1->B8, and V0->G8[1].
+    /// Y0->R8, U0->G8\[0\], Y1->B8, and V0->G8\[1\].
     ///
     /// For more info about YUV formats for video rendering, see
     /// [Recommended 8-Bit YUV Formats for Video Rendering.][1]

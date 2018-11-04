@@ -42,7 +42,7 @@ fn main() {
                 primary_mode.height(),
                 hz,
             );
-            println!("------ {:?}", primary_mode);
+            println!("------ {:#?}", primary_mode);
         }
     }
 }

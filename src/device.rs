@@ -8,11 +8,17 @@ use winapi::shared::dxgi::{IDXGIDevice, IDXGIAdapter1};
 use wio::com::ComPtr;
 
 #[derive(Clone, PartialEq)]
+/// The DXGI Device interface is designed for use by DXGI objects that need
+/// access to other DXGI objects. This interface is useful to applications
+/// that do not use Direct3D to communicate with DXGI.
+/// 
+/// **Windows Phone 8:** This API is supported.
 pub struct Device {
     ptr: ComPtr<IDXGIDevice>,
 }
 
 impl Device {
+    /// Returns the adapter associated with this device.
     #[inline]
     pub fn get_adapter(&self) -> Result<Adapter, Error> {
         unsafe {

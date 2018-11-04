@@ -9,6 +9,7 @@ use winapi::um::winbase::{FormatMessageW, LocalFree, FORMAT_MESSAGE_ALLOCATE_BUF
                           FORMAT_MESSAGE_FROM_SYSTEM, FORMAT_MESSAGE_IGNORE_INSERTS};
 use wio::wide::FromWide;
 
+#[repr(transparent)]
 #[derive(Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Error(pub HRESULT);
 

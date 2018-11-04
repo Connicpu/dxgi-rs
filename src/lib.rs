@@ -7,16 +7,25 @@ extern crate checked_enum;
 extern crate winapi;
 extern crate wio;
 
-pub use adapter::Adapter;
-pub use device::Device;
+#[doc(no_inline)]
 pub use enums::{
     AlphaMode, Format, ModeRotation, ModeScaling, ModeScanlineOrder, PresentFlags, Scaling,
     SwapChainFlags, SwapEffect, UsageFlags,
 };
+
+#[doc(inline)]
+pub use adapter::Adapter;
+#[doc(inline)]
+pub use device::Device;
+#[doc(inline)]
 pub use error::Error;
+#[doc(inline)]
 pub use factory::Factory;
+#[doc(inline)]
 pub use output::Output;
+#[doc(inline)]
 pub use surface::Surface;
+#[doc(inline)]
 pub use swap_chain::SwapChain;
 
 pub mod adapter;

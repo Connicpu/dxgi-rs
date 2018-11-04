@@ -179,6 +179,11 @@ impl SwapChain {
     }
 
     #[inline]
+    pub fn is_temporary_mono_supported(&self) -> bool {
+        unsafe { self.ptr.IsTemporaryMonoSupported() != 0 }
+    }
+
+    #[inline]
     pub fn set_background_color(&self, bg: &Rgba) -> Result<(), Error> {
         unsafe {
             let hr = self.ptr.SetBackgroundColor(bg as *const _ as *const _);
