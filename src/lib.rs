@@ -9,8 +9,8 @@ extern crate wio;
 
 #[doc(no_inline)]
 pub use enums::{
-    AlphaMode, Format, ModeRotation, ModeScaling, ModeScanlineOrder, PresentFlags, Scaling,
-    SwapChainFlags, SwapEffect, UsageFlags,
+    AdapterFlags, AlphaMode, Format, ModeRotation, ModeScaling, ModeScanlineOrder, PresentFlags,
+    Scaling, SwapChainFlags, SwapEffect, UsageFlags,
 };
 
 #[doc(inline)]

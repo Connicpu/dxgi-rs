@@ -1,3 +1,4 @@
+use enums::AdapterFlags;
 use error::Error;
 use factory::Factory;
 use output::Output;
@@ -7,11 +8,11 @@ use std::fmt;
 use std::mem;
 use std::ptr;
 
-use winapi::Interface;
-use winapi::shared::dxgi::{DXGI_ADAPTER_DESC1, IDXGIAdapter1};
+use winapi::shared::dxgi::{IDXGIAdapter1, DXGI_ADAPTER_DESC1};
 use winapi::shared::dxgi1_2::IDXGIFactory2;
 use winapi::shared::winerror::{DXGI_ERROR_NOT_FOUND, SUCCEEDED, S_OK};
 use winapi::um::winnt::LUID;
+use winapi::Interface;
 use wio::com::ComPtr;
 use wio::wide::FromWide;
 
@@ -90,8 +91,12 @@ pub struct AdapterDesc {
 
 impl AdapterDesc {
     #[inline]
+    /// A string that contains the adapter description. On feature level 9
+    /// graphics hardware, `get_desc` returns `“Software Adapter”` for the
+    /// description string.
     pub fn description(&self) -> String {
-        let len = self.desc
+        let len = self
+            .desc
             .Description
             .iter()
             .position(|&c| c == 0)
@@ -101,48 +106,69 @@ impl AdapterDesc {
     }
 
     #[inline]
+    /// The PCI ID of the hardware vendor. On feature level 9 graphics
+    /// hardware, `get_desc` returns zeros for the PCI ID of the hardware
+    /// vendor.
     pub fn vendor_id(&self) -> u32 {
         self.desc.VendorId
     }
 
     #[inline]
+    /// The PCI ID of the hardware device. On feature level 9 graphics
+    /// hardware, `get_desc` returns zeros for the PCI ID of the hardware
+    /// device.
     pub fn device_id(&self) -> u32 {
         self.desc.DeviceId
     }
 
     #[inline]
+    /// The PCI ID of the sub system. On feature level 9 graphics hardware,
+    /// `get_desc` returns zeros for the PCI ID of the sub system.
     pub fn sub_sys_id(&self) -> u32 {
         self.desc.SubSysId
     }
 
     #[inline]
+    /// The PCI ID of the revision number of the adapter. On feature level 9
+    /// graphics hardware, `get_desc` returns zeros for the PCI ID of the
+    /// revision number of the adapter.
     pub fn revision(&self) -> u32 {
         self.desc.Revision
     }
 
     #[inline]
+    /// The number of bytes of dedicated video memory that are not shared with
+    /// the CPU.
     pub fn dedicated_video_memory(&self) -> usize {
         self.desc.DedicatedVideoMemory
     }
 
     #[inline]
+    /// The number of bytes of dedicated system memory that are not shared with
+    /// the CPU. This memory is allocated from available system memory at boot time.
     pub fn dedicated_system_memory(&self) -> usize {
         self.desc.DedicatedSystemMemory
     }
 
     #[inline]
+    /// The number of bytes of shared system memory. This is the maximum value
+    /// of system memory that may be consumed by the adapter during operation.
+    /// Any incidental memory consumed by the driver as it manages and uses
+    /// video memory is additional.
     pub fn shared_system_memory(&self) -> usize {
         self.desc.SharedSystemMemory
     }
 
     #[inline]
+    /// A unique value that identifies the adapter.
     pub fn adapter_luid(&self) -> LUID {
         self.desc.AdapterLuid
     }
 
     #[inline]
-    pub fn flags(&self) -> u32 {
-        self.desc.Flags
+    /// The adapter flags that describe the adapter type. `REMOTE` is reserved.
+    pub fn flags(&self) -> AdapterFlags {
+        AdapterFlags(self.desc.Flags)
     }
 }
 
@@ -166,6 +192,7 @@ impl fmt::Debug for AdapterDesc {
 }
 
 #[derive(Copy, Clone)]
+/// Iterator over the outputs associated with an adapter.
 pub struct OutputIter<'a> {
     adapter: &'a IDXGIAdapter1,
     output: u32,
