@@ -11,10 +11,16 @@ use wio::wide::FromWide;
 
 #[repr(transparent)]
 #[derive(Copy, Clone, PartialEq, Eq, Hash)]
+/// Represents the various failure states that may occur when calling APIs in
+/// DXGI. [See here][1] for more details on the errors you can expect.
+/// 
+/// [1]: https://docs.microsoft.com/en-us/windows/desktop/direct3ddxgi/dxgi-error
 pub struct Error(pub HRESULT);
 
 impl Error {
     #[inline]
+    /// Returns Ok if the HRESULT represents a success state, otherwise returns
+    /// Err with the HRESULT value.
     pub fn map<T>(hr: HRESULT, success_value: T) -> Result<T, Error> {
         if SUCCEEDED(hr) {
             Ok(success_value)
@@ -24,6 +30,9 @@ impl Error {
     }
 
     #[inline]
+    /// Returns Ok with the value returned by the function if the HRESULT
+    /// represents a success state, otherwise returns Err with the HRESULT
+    /// value.
     pub fn map_if<F, T>(hr: HRESULT, if_success: F) -> Result<T, Error> where F: FnOnce() -> T {
         if SUCCEEDED(hr) {
             Ok(if_success())
@@ -33,11 +42,14 @@ impl Error {
     }
 
     #[inline]
+    /// Creates an Error from a Win32 error code, such as a raw error code
+    /// from `std::io::Error`.
     pub fn from_win32(err: DWORD) -> Error {
         Error(HRESULT_FROM_WIN32(err))
     }
 
     #[inline]
+    /// Gets a formatted error string for the HRESULT value contained within.
     pub fn get_message(&self) -> String {
         format_err(self.0)
     }

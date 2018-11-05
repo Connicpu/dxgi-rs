@@ -7,12 +7,25 @@ use winapi::Interface;
 use winapi::shared::dxgi::{IDXGIDevice, IDXGIAdapter1};
 use wio::com::ComPtr;
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, ComWrapper)]
+#[com(send, sync, debug)]
+#[repr(transparent)]
 /// The DXGI Device interface is designed for use by DXGI objects that need
 /// access to other DXGI objects. This interface is useful to applications
 /// that do not use Direct3D to communicate with DXGI.
 /// 
+/// This type does not provide any behavior on its own, but rather is used more
+/// like a handle that is required to be passed when creating types for other
+/// objects in the DirectX family of APIs, such as [`direct2d::Device`][1]. The
+/// simplest route for obtaining a `Device` is to create a
+/// [`direct3d11::Device`][2] and use the [`as_dxgi`][3] method to cast it to
+/// this type.
+/// 
 /// **Windows Phone 8:** This API is supported.
+/// 
+/// [1]: https://docs.rs/direct2d/*/direct2d/struct.Device.html
+/// [2]: https://docs.rs/direct3d11/*/direct3d11/device/struct.Device.html
+/// [3]: https://docs.rs/direct3d11/*/direct3d11/device/struct.Device.html#method.as_dxgi
 pub struct Device {
     ptr: ComPtr<IDXGIDevice>,
 }
@@ -30,19 +43,4 @@ impl Device {
             Error::map_if(hr, || Adapter::from_raw(ptr1 as *mut _))
         }
     }
-
-    #[inline]
-    pub unsafe fn from_raw(ptr: *mut IDXGIDevice) -> Device {
-        Device {
-            ptr: ComPtr::from_raw(ptr),
-        }
-    }
-
-    #[inline]
-    pub unsafe fn get_raw(&self) -> *mut IDXGIDevice {
-        self.ptr.as_raw()
-    }
 }
-
-unsafe impl Send for Device {}
-unsafe impl Sync for Device {}

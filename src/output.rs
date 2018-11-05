@@ -10,25 +10,30 @@ use std::mem;
 use std::ptr;
 
 use checked_enum::UncheckedEnum;
+use math2d::Recti;
 use winapi::shared::dxgi::{IDXGIOutput, DXGI_FRAME_STATISTICS, DXGI_OUTPUT_DESC};
 use winapi::shared::dxgitype::{
     DXGI_GAMMA_CONTROL, DXGI_GAMMA_CONTROL_CAPABILITIES, DXGI_MODE_DESC, DXGI_RATIONAL, DXGI_RGB,
     DXGI_RGBA,
 };
 use winapi::shared::minwindef::BOOL;
-use winapi::shared::windef::{HMONITOR, RECT};
+use winapi::shared::windef::HMONITOR;
 use winapi::shared::winerror::{DXGI_ERROR_MORE_DATA, DXGI_ERROR_NOT_CURRENTLY_AVAILABLE, S_OK};
 use winapi::um::unknwnbase::IUnknown;
 use wio::com::ComPtr;
 use wio::wide::FromWide;
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, ComWrapper)]
+#[com(send, sync, debug)]
+#[repr(transparent)]
+/// Represents an adapter output (such as a monitor).
 pub struct Output {
     ptr: ComPtr<IDXGIOutput>,
 }
 
 impl Output {
     #[inline]
+    /// Get a description of the output.
     pub fn get_desc(&self) -> OutputDesc {
         unsafe {
             let mut desc = mem::uninitialized();
@@ -41,6 +46,8 @@ impl Output {
     }
 
     #[inline]
+    /// Gets the display modes that match the requested format and other input
+    /// options.
     pub fn get_modes(&self, format: Format) -> Result<Vec<Mode>, Error> {
         unsafe {
             let mut buf: Vec<Mode> = Vec::new();
@@ -68,6 +75,8 @@ impl Output {
     }
 
     #[inline]
+    /// Finds the display mode that most closely matches the requested display
+    /// mode.
     pub fn find_closest_matching_mode(
         &self,
         mode: &Mode,
@@ -88,6 +97,7 @@ impl Output {
     }
 
     #[inline]
+    /// Halt a thread until the next vertical blank occurs.
     pub fn wait_for_vblank(&self) -> Result<(), Error> {
         unsafe {
             let hr = self.ptr.WaitForVBlank();
@@ -96,22 +106,62 @@ impl Output {
     }
 
     #[inline]
-    pub fn take_ownership(&self, device: &Device, exclusive: bool) -> Result<(), Error> {
-        unsafe {
-            let dev = device.get_raw();
-            let hr = self.ptr.TakeOwnership(dev as *mut _, exclusive as BOOL);
-            Error::map(hr, ())
-        }
+    /// Takes ownership of an output. When you are finished with the output,
+    /// call `release_ownership`.
+    ///
+    /// `take_ownership` should not be called directly by applications, since
+    /// results will be unpredictable. It is called implicitly by the DXGI swap
+    /// chain object during full-screen transitions, and should not be used as
+    /// a substitute for swap-chain methods.
+    ///
+    /// <div style="padding: 10px 10px 2px 10px; margin: 10px; background-color: #F2F2F2">
+    ///
+    /// **Note**
+    /// This method is marked as unsafe because it is not clear what the
+    /// implications of calling this method are, and therefore an application
+    /// should be certain this is the action they would like to take.
+    ///
+    /// </div>
+    ///
+    /// If a Windows Store app uses `take_ownership`, it fails with
+    /// [`DXGI_ERROR_NOT_CURRENTLY_AVAILABLE`][1].
+    ///
+    /// [1]: https://docs.microsoft.com/en-us/windows/desktop/direct3ddxgi/dxgi-error#DXGI_ERROR_NOT_CURRENTLY_AVAILABLE
+    pub unsafe fn take_ownership(&self, device: &Device, exclusive: bool) -> Result<(), Error> {
+        let dev = device.get_raw();
+        let hr = self.ptr.TakeOwnership(dev as *mut _, exclusive as BOOL);
+        Error::map(hr, ())
     }
 
     #[inline]
-    pub fn release_ownership(&self) {
-        unsafe {
-            self.ptr.ReleaseOwnership();
-        }
+    /// Releases ownership of the output.
+    ///
+    /// If you are not using a swap chain, get access to an output by calling
+    /// `take_ownership` and release it when you are finished by calling
+    /// `release_ownership`. An application that uses a swap chain will
+    /// typically not call either of these methods.
+    ///
+    /// <div style="padding: 10px 10px 2px 10px; margin: 10px; background-color: #F2F2F2">
+    ///
+    /// **Note**
+    /// This method is marked as unsafe because it is not clear what the
+    /// implications of calling this method are, and therefore an application
+    /// should be certain this is the action they would like to take.
+    ///
+    /// </div>
+    pub unsafe fn release_ownership(&self) {
+        self.ptr.ReleaseOwnership();
     }
 
     #[inline]
+    /// Gets a description of the gamma-control capabilities.
+    ///
+    /// <div style="padding: 10px 10px 2px 10px; margin: 10px; background-color: #F2F2F2">
+    ///
+    /// **Note**
+    /// Calling this method is only supported while in full-screen mode.
+    ///
+    /// </div>
     pub fn get_gamma_control_capabilities(&self) -> Result<GammaControlCaps, Error> {
         unsafe {
             let mut caps: GammaControlCaps = mem::uninitialized();
@@ -121,6 +171,14 @@ impl Output {
     }
 
     #[inline]
+    /// Gets the gamma control settings.
+    ///
+    /// <div style="padding: 10px 10px 2px 10px; margin: 10px; background-color: #F2F2F2">
+    ///
+    /// **Note**
+    /// Calling this method is only supported while in full-screen mode.
+    ///
+    /// </div>
     pub fn get_gamma_control(&self) -> Result<GammaControl, Error> {
         unsafe {
             let mut control: GammaControl = mem::uninitialized();
@@ -130,6 +188,18 @@ impl Output {
     }
 
     #[inline]
+    /// Sets the gamma controls.
+    ///
+    /// For info about using gamma correction, see [Using gamma correction][1].
+    ///
+    /// <div style="padding: 10px 10px 2px 10px; margin: 10px; background-color: #F2F2F2">
+    ///
+    /// **Note**
+    /// Calling this method is only supported while in full-screen mode.
+    ///
+    /// </div>
+    ///
+    /// [1]: https://msdn.microsoft.com/97ACDAE3-514E-4AAF-A27D-E5FFC162DB2A
     pub fn set_gamma_control(&self, control: &GammaControl) -> Result<(), Error> {
         unsafe {
             let hr = self.ptr.SetGammaControl(&control.desc);
@@ -137,15 +207,49 @@ impl Output {
         }
     }
 
-    // NOTE: Windows docs say to *NEVER* use SetDisplaySurface as an application. I've omitted the
-    // method for now. If someone has a use case for it, open an issue and I'll add it.
-
     #[inline]
+    /// Gets a copy of the current display surface.
+    ///
+    /// `get_display_surface_data` can only be called when an output is in
+    /// full-screen mode. If the method succeeds, DXGI fills the destination
+    /// surface.
+    ///
+    /// Use `get_desc` to determine the size (width and height) of the output
+    /// when you want to allocate space for the destination surface. This is
+    /// true regardless of target monitor rotation. A destination surface
+    /// created by a graphics component (such as Direct3D 11) must be created
+    /// with CPU-write permission (see [`CpuAccessFlags::WRITE`][1]). Other
+    /// surfaces should be created with CPU read-write permission
+    /// (see [`CpuAccessFlags::READWRITE`][2]). This
+    /// method will modify the surface data to fit the destination surface
+    /// (stretch, shrink, convert format, rotate). The stretch and shrink is
+    /// performed with point-sampling.
+    ///
+    /// [1]: https://docs.rs/direct3d11/*/direct3d11/enums/struct.CpuAccessFlags.html#associatedconstant.WRITE
+    /// [2]: https://docs.rs/direct3d11/*/direct3d11/enums/struct.CpuAccessFlags.html#associatedconstant.READWRITE
     pub fn get_display_surface_data(&self, surface: &Surface) -> Result<(), Error> {
         unsafe {
             let hr = self.ptr.GetDisplaySurfaceData(surface.get_raw());
             Error::map(hr, ())
         }
+    }
+
+    /// Changes the display mode. The surface must have been created as a back
+    /// buffer ([`UsageFlags::BACK_BUFFER`][1]).
+    ///
+    /// <div style="padding: 10px 10px 2px 10px; margin: 10px; background-color: #F2F2F2">
+    ///
+    /// **Note**
+    /// This method is marked as unsafe because it is not clear what the
+    /// implications of calling this method are, and therefore an application
+    /// should be certain this is the action they would like to take.
+    ///
+    /// </div>
+    ///
+    /// [1]: enums/struct.UsageFlags.html#associatedconstant.BACK_BUFFER
+    pub unsafe fn set_display_surface(&self, surface: &Surface) -> Result<(), Error> {
+        let hr = self.ptr.SetDisplaySurface(surface.get_raw());
+        Error::map(hr, ())
     }
 
     #[inline]
@@ -156,31 +260,19 @@ impl Output {
             Error::map(hr, stats)
         }
     }
-
-    #[inline]
-    pub unsafe fn from_raw(ptr: *mut IDXGIOutput) -> Output {
-        Output {
-            ptr: ComPtr::from_raw(ptr),
-        }
-    }
-
-    #[inline]
-    pub unsafe fn get_raw(&self) -> *mut IDXGIOutput {
-        self.ptr.as_raw()
-    }
 }
 
-unsafe impl Send for Output {}
-unsafe impl Sync for Output {}
-
-#[repr(C)]
 #[derive(Copy, Clone)]
+#[repr(transparent)]
+/// Describes an output or physical connection between the adapter (video card)
+/// and a device.
 pub struct OutputDesc {
     desc: DXGI_OUTPUT_DESC,
 }
 
 impl OutputDesc {
     #[inline]
+    /// A string that contains the name of the output device.
     pub fn device_name(&self) -> String {
         let len = self
             .desc
@@ -193,34 +285,50 @@ impl OutputDesc {
     }
 
     #[inline]
-    pub fn desktop_coordinates(&self) -> RECT {
-        self.desc.DesktopCoordinates
+    /// A rect containing the bounds of the output in desktop coordinates.
+    /// Desktop coordinates depend on the dots per inch (DPI) of the desktop.
+    /// For info about writing DPI-aware Win32 apps, see [High DPI][1].
+    ///
+    /// [1]: https://msdn.microsoft.com/en-us/library/Mt843498(v=VS.85).aspx
+    pub fn desktop_coordinates(&self) -> Recti {
+        self.desc.DesktopCoordinates.into()
     }
 
     #[inline]
+    /// Whether the output is attached to the desktop.
     pub fn attached_to_desktop(&self) -> bool {
         self.desc.AttachedToDesktop != 0
     }
 
     #[inline]
+    /// Describes the rotation applied to the output image.
     pub fn rotation(&self) -> UncheckedEnum<ModeRotation> {
         self.desc.Rotation.into()
     }
 
     #[inline]
+    /// The monitor associated with this output.
     pub fn monitor(&self) -> HMONITOR {
         self.desc.Monitor
     }
+
+    #[inline]
+    pub fn raw(&self) -> &DXGI_OUTPUT_DESC {
+        &self.desc
+    }
 }
 
-#[repr(C)]
 #[derive(Copy, Clone)]
+#[repr(transparent)]
+/// Describes a display mode.
 pub struct Mode {
     desc: DXGI_MODE_DESC,
 }
 
 impl Mode {
     #[inline]
+    /// Constructs a blank Mode. Zeroed, except for the refresh rate, which
+    /// is initialized to `(0 / 1)`.
     pub fn new() -> Mode {
         Mode {
             desc: DXGI_MODE_DESC {
@@ -307,6 +415,13 @@ impl Mode {
     }
 }
 
+impl Default for Mode {
+    #[inline]
+    fn default() -> Self {
+        Mode::new()
+    }
+}
+
 impl fmt::Debug for Mode {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         fmt.debug_struct("Mode")
@@ -317,6 +432,53 @@ impl fmt::Debug for Mode {
             .field("scanline_ordering", &self.scanline_ordering())
             .field("scaling", &self.scaling())
             .finish()
+    }
+}
+
+pub struct ModeBuilder {
+    mode: Mode,
+}
+
+impl ModeBuilder {
+    #[inline]
+    pub fn new() -> ModeBuilder {
+        ModeBuilder { mode: Mode::new() }
+    }
+
+    #[inline]
+    pub fn with_size(mut self, width: u32, height: u32) -> Self {
+        self.mode.set_width(width);
+        self.mode.set_height(height);
+        self
+    }
+
+    #[inline]
+    pub fn with_refresh_rate(mut self, rate: impl Into<Ratio>) -> Self {
+        self.mode.set_refresh_rate(rate.into());
+        self
+    }
+
+    #[inline]
+    pub fn with_format(mut self, format: Format) -> Self {
+        self.mode.set_format(format);
+        self
+    }
+
+    #[inline]
+    pub fn with_scanline_ordering(mut self, so: ModeScanlineOrder) -> Self {
+        self.mode.set_scanline_ordering(so);
+        self
+    }
+
+    #[inline]
+    pub fn with_scaling(mut self, scaling: ModeScaling) -> Self {
+        self.mode.set_scaling(scaling);
+        self
+    }
+
+    #[inline]
+    pub fn build(self) -> Mode {
+        self.mode
     }
 }
 
@@ -350,6 +512,7 @@ impl GammaControlCaps {
 }
 
 impl fmt::Debug for GammaControlCaps {
+    #[inline]
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         fmt.debug_struct("GammaControlCaps")
             .field(

@@ -155,10 +155,10 @@
 /// compresses on blocks of 4x4 texels). In the texture sampler, compressed
 /// formats are always decompressed before texture filtering.
 ///
-/// [1]: https://docs.rs/direct3d11/0.1.7/direct3d11/flags/struct.BindFlags.html#VERTEX_BUFFER
-/// [2]: https://docs.rs/direct3d11/0.1.7/direct3d11/flags/struct.BindFlags.html#INDEX_BUFFER
-/// [3]: https://docs.rs/direct3d11/0.1.7/direct3d11/flags/struct.BindFlags.html#CONSTANT_BUFFER
-/// [4]: https://docs.rs/direct3d11/0.1.7/direct3d11/flags/struct.BindFlags.html#STREAM_OUTPUT
+/// [1]: https://docs.rs/direct3d11/*/direct3d11/enums/struct.BindFlags.html#associatedconstant.VERTEX_BUFFER
+/// [2]: https://docs.rs/direct3d11/*/direct3d11/enums/struct.BindFlags.html#associatedconstant.INDEX_BUFFER
+/// [3]: https://docs.rs/direct3d11/*/direct3d11/enums/struct.BindFlags.html#associatedconstant.CONSTANT_BUFFER
+/// [4]: https://docs.rs/direct3d11/*/direct3d11/enums/struct.BindFlags.html#associatedconstant.STREAM_OUTPUT
 /// [5]: #variant.R8G8_B8G8Unorm
 /// [6]: https://msdn.microsoft.com/en-us/library/windows/desktop/ff476876(v=vs.85).aspx#Overview
 /// [7]: https://msdn.microsoft.com/en-us/library/windows/desktop/mt426648(v=vs.85).aspx

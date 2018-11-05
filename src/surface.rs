@@ -1,21 +1,24 @@
+use enums::{Format, MapFlags};
 use error::Error;
 
 use std::mem;
 use std::slice;
 
+use checked_enum::UncheckedEnum;
 use winapi::shared::dxgi::{IDXGISurface, DXGI_MAPPED_RECT, DXGI_SURFACE_DESC};
-use winapi::shared::dxgiformat::DXGI_FORMAT;
-use winapi::shared::minwindef::UINT;
 use winapi::shared::winerror::SUCCEEDED;
 use wio::com::ComPtr;
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, ComWrapper)]
+#[com(send, sync, debug)]
+#[repr(transparent)]
 pub struct Surface {
     ptr: ComPtr<IDXGISurface>,
 }
 
 impl Surface {
     #[inline]
+    /// Get a descriptor of this surface.
     pub fn get_desc(&self) -> SurfaceDesc {
         unsafe {
             let mut desc: SurfaceDesc = mem::uninitialized();
@@ -26,31 +29,15 @@ impl Surface {
     }
 
     #[inline]
-    pub unsafe fn map<'a>(
-        &'a self,
-        read: bool,
-        write: bool,
-        discard: bool,
-    ) -> Result<SurfaceMap<'a>, Error> {
-        // TODO: Wait for winapi to be updated with my PR adding these constants
-        const DXGI_MAP_READ: UINT = 1;
-        const DXGI_MAP_WRITE: UINT = 2;
-        const DXGI_MAP_DISCARD: UINT = 4;
-
-        let mut flags = 0;
-        if read {
-            flags |= DXGI_MAP_READ;
-        }
-        if write {
-            flags |= DXGI_MAP_WRITE;
-        }
-        if discard {
-            flags |= DXGI_MAP_DISCARD;
-        }
-
+    /// Map a surface so that its memory may be read from or written to. This
+    /// can easily be an unsafe operation, so this method and all of the
+    /// methods on SurfaceMap are marked unsafe. Be aware that Unmap is called
+    /// in SurfaceMap's `Drop` implementation. It is up to the caller to ensure
+    /// that this surface is not concurrently mapped twice.
+    pub unsafe fn map<'a>(&'a self, flags: MapFlags) -> Result<SurfaceMap<'a>, Error> {
         let desc = self.get_desc();
         let mut map = mem::uninitialized();
-        let hr = self.ptr.Map(&mut map, flags);
+        let hr = self.ptr.Map(&mut map, flags.0);
 
         let mut elem_size = 1;
         for i in 2.. {
@@ -60,29 +47,14 @@ impl Surface {
             elem_size = i as usize;
         }
 
-        Error::map_if(hr, || SurfaceMap {
+        Error::map_if(hr, move || SurfaceMap {
             desc,
             map,
             elem_size,
             surface: &self.ptr,
         })
     }
-    
-    #[inline]
-    pub unsafe fn from_raw(ptr: *mut IDXGISurface) -> Surface {
-        Surface {
-            ptr: ComPtr::from_raw(ptr),
-        }
-    }
-
-    #[inline]
-    pub unsafe fn get_raw(&self) -> *mut IDXGISurface {
-        self.ptr.as_raw()
-    }
 }
-
-unsafe impl Send for Surface {}
-unsafe impl Sync for Surface {}
 
 #[derive(Copy, Clone)]
 pub struct SurfaceDesc {
@@ -101,8 +73,8 @@ impl SurfaceDesc {
     }
 
     #[inline]
-    pub fn format(&self) -> DXGI_FORMAT {
-        self.desc.Format
+    pub fn format(&self) -> UncheckedEnum<Format> {
+        self.desc.Format.into()
     }
 
     #[inline]

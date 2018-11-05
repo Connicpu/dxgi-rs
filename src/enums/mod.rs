@@ -5,11 +5,15 @@ pub use enums::alpha_mode::AlphaMode;
 #[doc(inline)]
 pub use enums::format::Format;
 #[doc(inline)]
+pub use enums::map_flags::MapFlags;
+#[doc(inline)]
 pub use enums::mode_rotation::ModeRotation;
 #[doc(inline)]
 pub use enums::mode_scaling::ModeScaling;
 #[doc(inline)]
 pub use enums::mode_scanline_order::ModeScanlineOrder;
+#[doc(inline)]
+pub use enums::mwa_flags::WindowAssociationFlags;
 #[doc(inline)]
 pub use enums::present_flags::PresentFlags;
 #[doc(inline)]
@@ -28,11 +32,15 @@ pub mod alpha_mode;
 #[doc(hidden)]
 pub mod format;
 #[doc(hidden)]
+pub mod map_flags;
+#[doc(hidden)]
 pub mod mode_rotation;
 #[doc(hidden)]
 pub mod mode_scaling;
 #[doc(hidden)]
 pub mod mode_scanline_order;
+#[doc(hidden)]
+pub mod mwa_flags;
 #[doc(hidden)]
 pub mod present_flags;
 #[doc(hidden)]

@@ -23,7 +23,9 @@ use winapi::shared::windef::HWND;
 use winapi::shared::winerror::{SUCCEEDED, S_OK};
 use wio::com::ComPtr;
 
-#[derive(Clone, PartialEq)]
+#[derive(PartialEq, ComWrapper)]
+#[com(send, debug)]
+#[repr(transparent)]
 pub struct SwapChain {
     ptr: ComPtr<IDXGISwapChain1>,
 }
@@ -35,7 +37,7 @@ impl SwapChain {
     }
 
     #[inline]
-    pub fn present(&self, sync_interval: u32, flags: PresentFlags) -> Result<(), Error> {
+    pub fn present(&mut self, sync_interval: u32, flags: PresentFlags) -> Result<(), Error> {
         unsafe {
             let hr = self.ptr.Present(sync_interval, flags.0);
             Error::map(hr, ())
@@ -56,17 +58,23 @@ impl SwapChain {
     }
 
     #[inline]
-    pub fn get_fullscreen_state(&self) -> Result<Option<Output>, Error> {
+    pub fn get_fullscreen_state(&self) -> Result<FullscreenState, Error> {
         unsafe {
             let mut isfs = 0;
             let mut out = ptr::null_mut();
             let hr = self.ptr.GetFullscreenState(&mut isfs, &mut out);
 
             if SUCCEEDED(hr) {
-                if isfs != 0 {
-                    Ok(Some(Output::from_raw(out)))
+                let out = if out.is_null() {
+                    None
                 } else {
-                    Ok(None)
+                    Some(Output::from_raw(out))
+                };
+
+                if isfs != 0 {
+                    Ok(FullscreenState::Fullscreen(out))
+                } else {
+                    Ok(FullscreenState::Windowed)
                 }
             } else {
                 Err(hr.into())
@@ -184,7 +192,7 @@ impl SwapChain {
     }
 
     #[inline]
-    pub fn set_background_color(&self, bg: &Rgba) -> Result<(), Error> {
+    pub fn set_background_color(&mut self, bg: &Rgba) -> Result<(), Error> {
         unsafe {
             let hr = self.ptr.SetBackgroundColor(bg as *const _ as *const _);
             Error::map(hr, ())
@@ -192,7 +200,7 @@ impl SwapChain {
     }
 
     #[inline]
-    pub fn set_rotation(&self, rot: ModeRotation) -> Result<(), Error> {
+    pub fn set_rotation(&mut self, rot: ModeRotation) -> Result<(), Error> {
         unsafe {
             let hr = self.ptr.SetRotation(rot as u32);
             Error::map(hr, ())
@@ -200,14 +208,13 @@ impl SwapChain {
     }
 
     #[inline]
-    pub fn set_fullscreen_state(
-        &self,
-        fullscreen: bool,
-        output: Option<&Output>,
-    ) -> Result<(), Error> {
+    pub fn set_fullscreen_state(&mut self, state: FullscreenState) -> Result<(), Error> {
         unsafe {
-            let out = if fullscreen { output } else { None };
-            let out = out.map(|o| o.get_raw()).unwrap_or(ptr::null_mut());
+            let (fullscreen, out) = match &state {
+                FullscreenState::Windowed => (false, ptr::null_mut()),
+                FullscreenState::Fullscreen(None) => (true, ptr::null_mut()),
+                FullscreenState::Fullscreen(Some(out)) => (true, out.get_raw()),
+            };
 
             let hr = self.ptr.SetFullscreenState(fullscreen as BOOL, out);
             Error::map(hr, ())
@@ -234,22 +241,12 @@ impl SwapChain {
             Error::map(hr, ())
         }
     }
-
-    #[inline]
-    pub unsafe fn from_raw(ptr: *mut IDXGISwapChain1) -> SwapChain {
-        SwapChain {
-            ptr: ComPtr::from_raw(ptr),
-        }
-    }
-
-    #[inline]
-    pub unsafe fn get_raw(&self) -> *mut IDXGISwapChain1 {
-        self.ptr.as_raw()
-    }
 }
 
-unsafe impl Send for SwapChain {}
-unsafe impl Sync for SwapChain {}
+pub enum FullscreenState {
+    Windowed,
+    Fullscreen(Option<Output>),
+}
 
 /// This should be implemented for e.g. d3d11::Texture2d
 pub unsafe trait BackbufferTexture {

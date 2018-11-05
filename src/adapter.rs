@@ -16,7 +16,9 @@ use winapi::Interface;
 use wio::com::ComPtr;
 use wio::wide::FromWide;
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, ComWrapper)]
+#[com(send, sync)]
+#[repr(transparent)]
 /// Represents a display sub-system (including one or more GPUs, DACs, and
 /// video memory).
 pub struct Adapter {
@@ -59,22 +61,7 @@ impl Adapter {
             Factory::from_raw(factory as *mut _)
         }
     }
-
-    #[inline]
-    pub unsafe fn from_raw(ptr: *mut IDXGIAdapter1) -> Adapter {
-        Adapter {
-            ptr: ComPtr::from_raw(ptr),
-        }
-    }
-
-    #[inline]
-    pub unsafe fn get_raw(&self) -> *mut IDXGIAdapter1 {
-        self.ptr.as_raw()
-    }
 }
-
-unsafe impl Send for Adapter {}
-unsafe impl Sync for Adapter {}
 
 impl fmt::Debug for Adapter {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {

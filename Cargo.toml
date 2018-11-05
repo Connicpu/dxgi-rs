@@ -4,7 +4,7 @@ version = "0.3.0-alpha2"
 authors = ["Connie Hilarides <conni_h@outlook.com>"]
 repository = "https://github.com/Connicpu/dxgi-rs"
 license = "MIT"
-documentation = "https://docs.rs/dxgi/*/x86_64-pc-windows-msvc/dxgi/"
+documentation = "https://docs.rs/dxgi"
 description = """
 Provides a convenient, higher level wrapping of the DXGI APIs. Targetting dxgi 1.2 stuff
 that works on Windows 7.
@@ -14,6 +14,9 @@ that works on Windows 7.
 wio = "0.2.0"
 checked-enum = "0.1.1-alpha1"
 auto-enum = "0.1.2"
+com-wrapper = "0.1.0-alpha1"
+derive-com-wrapper = "0.1.0-alpha2"
+math2d = { version = "0.1.2", features = ["d2d"] }
 
 [target.'cfg(windows)'.dependencies.winapi]
 version = "0.3"
