@@ -4,6 +4,7 @@ use error::Error;
 
 use std::ptr;
 
+use com_wrapper::ComWrapper;
 use winapi::shared::dxgi::{CreateDXGIFactory1, IDXGIAdapter1};
 use winapi::shared::dxgi1_2::IDXGIFactory2;
 use winapi::shared::minwindef::HMODULE;
@@ -58,7 +59,7 @@ impl Factory {
 
     #[inline]
     /// Gets the `HWND` associated with this DXGI Factory.
-    pub fn get_window_association(&self) -> Result<HWND, Error> {
+    pub fn window_association(&self) -> Result<HWND, Error> {
         unsafe {
             let mut hwnd = ptr::null_mut();
             let hr = self.ptr.GetWindowAssociation(&mut hwnd);

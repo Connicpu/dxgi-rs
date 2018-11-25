@@ -8,6 +8,7 @@ use std::fmt;
 use std::mem;
 use std::ptr;
 
+use com_wrapper::ComWrapper;
 use winapi::shared::dxgi::{IDXGIAdapter1, DXGI_ADAPTER_DESC1};
 use winapi::shared::dxgi1_2::IDXGIFactory2;
 use winapi::shared::winerror::{DXGI_ERROR_NOT_FOUND, SUCCEEDED, S_OK};
@@ -28,7 +29,7 @@ pub struct Adapter {
 impl Adapter {
     /// Gets a description of the adapter (or video card).
     #[inline]
-    pub fn get_desc(&self) -> AdapterDesc {
+    pub fn desc(&self) -> AdapterDesc {
         unsafe {
             let mut desc = mem::uninitialized();
             let result = self.ptr.GetDesc1(&mut desc);
@@ -53,7 +54,7 @@ impl Adapter {
 
     /// Get the DXGI Factory associated with this adapter.
     #[inline]
-    pub fn get_factory(&self) -> Factory {
+    pub fn factory(&self) -> Factory {
         unsafe {
             let mut factory = ptr::null_mut();
             let hr = self.ptr.GetParent(&IDXGIFactory2::uuidof(), &mut factory);
@@ -66,7 +67,7 @@ impl Adapter {
 impl fmt::Debug for Adapter {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         fmt.debug_struct("Adapter")
-            .field("desc", &self.get_desc())
+            .field("desc", &self.desc())
             .finish()
     }
 }

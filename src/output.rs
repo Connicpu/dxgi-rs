@@ -10,6 +10,7 @@ use std::mem;
 use std::ptr;
 
 use checked_enum::UncheckedEnum;
+use com_wrapper::ComWrapper;
 use math2d::Recti;
 use winapi::shared::dxgi::{IDXGIOutput, DXGI_FRAME_STATISTICS, DXGI_OUTPUT_DESC};
 use winapi::shared::dxgitype::{
@@ -34,7 +35,7 @@ pub struct Output {
 impl Output {
     #[inline]
     /// Get a description of the output.
-    pub fn get_desc(&self) -> OutputDesc {
+    pub fn desc(&self) -> OutputDesc {
         unsafe {
             let mut desc = mem::uninitialized();
 
@@ -48,7 +49,7 @@ impl Output {
     #[inline]
     /// Gets the display modes that match the requested format and other input
     /// options.
-    pub fn get_modes(&self, format: Format) -> Result<Vec<Mode>, Error> {
+    pub fn modes(&self, format: Format) -> Result<Vec<Mode>, Error> {
         unsafe {
             let mut buf: Vec<Mode> = Vec::new();
             loop {
@@ -162,7 +163,7 @@ impl Output {
     /// Calling this method is only supported while in full-screen mode.
     ///
     /// </div>
-    pub fn get_gamma_control_capabilities(&self) -> Result<GammaControlCaps, Error> {
+    pub fn gamma_control_capabilities(&self) -> Result<GammaControlCaps, Error> {
         unsafe {
             let mut caps: GammaControlCaps = mem::uninitialized();
             let hr = self.ptr.GetGammaControlCapabilities(&mut caps.desc);
@@ -179,7 +180,7 @@ impl Output {
     /// Calling this method is only supported while in full-screen mode.
     ///
     /// </div>
-    pub fn get_gamma_control(&self) -> Result<GammaControl, Error> {
+    pub fn gamma_control(&self) -> Result<GammaControl, Error> {
         unsafe {
             let mut control: GammaControl = mem::uninitialized();
             let hr = self.ptr.GetGammaControl(&mut control.desc);
@@ -253,7 +254,7 @@ impl Output {
     }
 
     #[inline]
-    pub fn get_frame_statistics(&self) -> Result<FrameStatistics, Error> {
+    pub fn frame_statistics(&self) -> Result<FrameStatistics, Error> {
         unsafe {
             let mut stats: FrameStatistics = mem::uninitialized();
             let hr = self.ptr.GetFrameStatistics(&mut stats.desc);

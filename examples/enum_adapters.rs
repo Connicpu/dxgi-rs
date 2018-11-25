@@ -9,9 +9,9 @@ fn main() {
     let factory = dxgi::factory::Factory::new().unwrap();
 
     for adapter in factory.adapters() {
-        assert!(adapter.get_factory() == factory);
+        assert!(adapter.factory() == factory);
 
-        let desc = adapter.get_desc();
+        let desc = adapter.desc();
         println!(
             "Adapter [{}, {}MB]",
             desc.description(),
@@ -19,7 +19,7 @@ fn main() {
         );
         
         for output in adapter.outputs() {
-            let desc = output.get_desc();
+            let desc = output.desc();
             let coords = desc.desktop_coordinates();
             println!(
                 "-- Output [{} @ ({}, {})]",

@@ -11,6 +11,7 @@ use ratio::Ratio;
 use std::mem;
 use std::ptr;
 
+use com_wrapper::ComWrapper;
 use winapi::ctypes::c_void;
 use winapi::shared::dxgi::DXGI_SWAP_EFFECT;
 use winapi::shared::dxgi1_2::{
@@ -45,7 +46,7 @@ impl SwapChain {
     }
 
     #[inline]
-    pub fn get_buffer<B>(&self, buffer: u32) -> Result<B, Error>
+    pub fn buffer<B>(&self, buffer: u32) -> Result<B, Error>
     where
         B: BackbufferTexture,
     {
@@ -58,7 +59,7 @@ impl SwapChain {
     }
 
     #[inline]
-    pub fn get_fullscreen_state(&self) -> Result<FullscreenState, Error> {
+    pub fn fullscreen_state(&self) -> Result<FullscreenState, Error> {
         unsafe {
             let mut isfs = 0;
             let mut out = ptr::null_mut();
@@ -83,7 +84,7 @@ impl SwapChain {
     }
 
     #[inline]
-    pub fn get_desc(&self) -> SwapChainDesc {
+    pub fn desc(&self) -> SwapChainDesc {
         unsafe {
             let mut scd: SwapChainDesc = mem::uninitialized();
             let hr = self.ptr.GetDesc1(&mut scd.desc);
@@ -93,7 +94,7 @@ impl SwapChain {
     }
 
     #[inline]
-    pub fn get_fullscreen_desc(&self) -> FullscreenDesc {
+    pub fn fullscreen_desc(&self) -> FullscreenDesc {
         unsafe {
             let mut fd: FullscreenDesc = mem::uninitialized();
             let hr = self.ptr.GetFullscreenDesc(&mut fd.desc);
@@ -103,7 +104,7 @@ impl SwapChain {
     }
 
     #[inline]
-    pub fn get_hwnd(&self) -> Option<HWND> {
+    pub fn hwnd(&self) -> Option<HWND> {
         unsafe {
             let mut hwnd = ptr::null_mut();
             let hr = self.ptr.GetHwnd(&mut hwnd);
@@ -116,7 +117,7 @@ impl SwapChain {
     }
 
     #[inline]
-    pub fn get_restrict_to_output(&self) -> Option<Output> {
+    pub fn restrict_to_output(&self) -> Option<Output> {
         unsafe {
             let mut ptr = ptr::null_mut();
             let hr = self.ptr.GetRestrictToOutput(&mut ptr);
@@ -129,7 +130,7 @@ impl SwapChain {
     }
 
     #[inline]
-    pub fn get_containing_output(&self) -> Option<Output> {
+    pub fn containing_output(&self) -> Option<Output> {
         unsafe {
             let mut ptr = ptr::null_mut();
             let hr = self.ptr.GetContainingOutput(&mut ptr);
@@ -142,7 +143,7 @@ impl SwapChain {
     }
 
     #[inline]
-    pub fn get_frame_statistics(&self) -> Result<FrameStatistics, Error> {
+    pub fn frame_statistics(&self) -> Result<FrameStatistics, Error> {
         unsafe {
             let mut fs: FrameStatistics = mem::uninitialized();
             let hr = self.ptr.GetFrameStatistics(&mut fs.desc);
@@ -151,7 +152,7 @@ impl SwapChain {
     }
 
     #[inline]
-    pub fn get_last_present_count(&self) -> Option<u32> {
+    pub fn last_present_count(&self) -> Option<u32> {
         unsafe {
             let mut count = 0;
             let hr = self.ptr.GetLastPresentCount(&mut count);
@@ -164,7 +165,7 @@ impl SwapChain {
     }
 
     #[inline]
-    pub fn get_background_color(&self) -> Option<Rgba> {
+    pub fn background_color(&self) -> Option<Rgba> {
         unsafe {
             let mut color = mem::uninitialized();
             let hr = self.ptr.GetBackgroundColor(&mut color);
@@ -177,7 +178,7 @@ impl SwapChain {
     }
 
     #[inline]
-    pub fn get_rotation(&self) -> Result<ModeRotation, Error> {
+    pub fn rotation(&self) -> Result<ModeRotation, Error> {
         unsafe {
             let mut rot = 0;
             let hr = self.ptr.GetRotation(&mut rot);
@@ -223,7 +224,7 @@ impl SwapChain {
 
     #[inline]
     pub fn resize_buffers(&self) -> ResizeBuffers {
-        let desc = self.get_desc();
+        let desc = self.desc();
         ResizeBuffers {
             swap_chain: &self.ptr,
             count: desc.buffer_count(),

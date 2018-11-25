@@ -19,7 +19,7 @@ pub struct Surface {
 impl Surface {
     #[inline]
     /// Get a descriptor of this surface.
-    pub fn get_desc(&self) -> SurfaceDesc {
+    pub fn desc(&self) -> SurfaceDesc {
         unsafe {
             let mut desc: SurfaceDesc = mem::uninitialized();
             let hr = self.ptr.GetDesc(&mut desc.desc);
@@ -35,7 +35,7 @@ impl Surface {
     /// in SurfaceMap's `Drop` implementation. It is up to the caller to ensure
     /// that this surface is not concurrently mapped twice.
     pub unsafe fn map<'a>(&'a self, flags: MapFlags) -> Result<SurfaceMap<'a>, Error> {
-        let desc = self.get_desc();
+        let desc = self.desc();
         let mut map = mem::uninitialized();
         let hr = self.ptr.Map(&mut map, flags.0);
 
