@@ -1,4 +1,7 @@
+//! TODO: Add documentation
+
 #![cfg(windows)]
+//#![warn(missing_docs)]
 
 #[macro_use]
 extern crate auto_enum;
@@ -12,33 +15,17 @@ extern crate math2d;
 extern crate winapi;
 extern crate wio;
 
-#[doc(no_inline)]
-pub use enums::{
-    AdapterFlags, AlphaMode, Format, ModeRotation, ModeScaling, ModeScanlineOrder, PresentFlags,
-    Scaling, SwapChainFlags, SwapEffect, UsageFlags,
-};
-
-#[doc(inline)]
-pub use adapter::Adapter;
-#[doc(inline)]
-pub use device::Device;
-#[doc(inline)]
-pub use error::Error;
-#[doc(inline)]
-pub use factory::Factory;
-#[doc(inline)]
-pub use output::Output;
-#[doc(inline)]
-pub use surface::Surface;
-#[doc(inline)]
-pub use swap_chain::SwapChain;
+#[macro_use]
+mod helpers;
 
 pub mod adapter;
+pub mod descriptions;
 pub mod device;
 pub mod enums;
 pub mod error;
 pub mod factory;
 pub mod output;
-pub mod ratio;
+pub mod resource;
 pub mod surface;
 pub mod swap_chain;
+pub mod device_subobject;

@@ -1,6 +1,9 @@
 #[enum_flags(u32)]
 /// Options for swap-chain behavior.
 pub enum SwapChainFlags {
+    /// No flags specified.
+    NONE = 0,
+
     /// Set this flag to turn off automatic image rotation; that is, do not
     /// perform a rotation when transferring the contents of the front buffer
     /// to the monitor. Use this flag to avoid a bandwidth penalty when an

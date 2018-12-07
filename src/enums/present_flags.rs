@@ -4,6 +4,9 @@
 /// The default (`NONE`) will present a frame from each buffer (starting with
 /// the current buffer) to the output.
 pub enum PresentFlags {
+    /// No flags specified (default behavior).
+    NONE = 0,
+
     /// Do not present the frame to the output. The status of the swap chain
     /// will be tested and appropriate errors returned. `TEST` is intended for
     /// use only when switching from the idle state; do not use it to determine

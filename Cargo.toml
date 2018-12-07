@@ -1,6 +1,6 @@
 [package]
 name = "dxgi"
-version = "0.3.0-alpha3"
+version = "0.3.0-alpha4"
 authors = ["Connie Hilarides <conni_h@outlook.com>"]
 repository = "https://github.com/Connicpu/dxgi-rs"
 license = "MIT"
@@ -9,18 +9,41 @@ description = """
 Provides a convenient, higher level wrapping of the DXGI APIs. Targetting dxgi 1.2 stuff
 that works on Windows 7.
 """
+edition = "2018"
+
+[features]
+support_windows_vista = []
 
 [target.'cfg(windows)'.dependencies]
 wio = "0.2.0"
 checked-enum = "0.1.1-alpha1"
-auto-enum = "0.1.2"
+auto-enum = "0.2.0-alpha1"
 com-wrapper = "0.1.0-alpha2"
 derive-com-wrapper = "0.1.0-alpha4"
-math2d = { version = "0.1.2", features = ["d2d"] }
+
+[target.'cfg(windows)'.dependencies.math2d]
+version = "0.1.3"
+features = ["d2d"]
+path = "../math2d"
 
 [target.'cfg(windows)'.dependencies.winapi]
 version = "0.3"
-features = ["dxgi1_2", "guiddef", "minwindef", "unknwnbase", "winbase", "windef", "winerror", "winnt"]
+features = [
+    "dxgi",
+    "dxgi1_2",
+    "dxgi1_3",
+    "dxgi1_4",
+    "dxgi1_5",
+    "dxgi1_6",
+    "guiddef",
+    "libloaderapi",
+    "minwindef",
+    "unknwnbase",
+    "winbase",
+    "windef",
+    "winerror",
+    "winnt"
+]
 
 [target.'cfg(windows)'.dev-dependencies]
 windows_dpi = "0.3"

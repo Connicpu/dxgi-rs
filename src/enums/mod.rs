@@ -17,6 +17,8 @@ pub use enums::mwa_flags::WindowAssociationFlags;
 #[doc(inline)]
 pub use enums::present_flags::PresentFlags;
 #[doc(inline)]
+pub use enums::resource_priority::ResourcePriority;
+#[doc(inline)]
 pub use enums::scaling::Scaling;
 #[doc(inline)]
 pub use enums::swap_chain_flags::SwapChainFlags;
@@ -25,29 +27,17 @@ pub use enums::swap_effect::SwapEffect;
 #[doc(inline)]
 pub use enums::usage_flags::UsageFlags;
 
-#[doc(hidden)]
-pub mod adapter_flags;
-#[doc(hidden)]
-pub mod alpha_mode;
-#[doc(hidden)]
-pub mod format;
-#[doc(hidden)]
-pub mod map_flags;
-#[doc(hidden)]
-pub mod mode_rotation;
-#[doc(hidden)]
-pub mod mode_scaling;
-#[doc(hidden)]
-pub mod mode_scanline_order;
-#[doc(hidden)]
-pub mod mwa_flags;
-#[doc(hidden)]
-pub mod present_flags;
-#[doc(hidden)]
-pub mod scaling;
-#[doc(hidden)]
-pub mod swap_chain_flags;
-#[doc(hidden)]
-pub mod swap_effect;
-#[doc(hidden)]
-pub mod usage_flags;
+mod adapter_flags;
+mod alpha_mode;
+mod format;
+mod map_flags;
+mod mode_rotation;
+mod mode_scaling;
+mod mode_scanline_order;
+mod mwa_flags;
+mod present_flags;
+mod resource_priority;
+mod scaling;
+mod swap_chain_flags;
+mod swap_effect;
+mod usage_flags;

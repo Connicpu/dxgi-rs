@@ -1,7 +1,10 @@
-use std::mem::swap;
 use std::cmp::Ordering;
 use std::fmt;
+use std::mem::swap;
 
+use winapi::shared::dxgitype::DXGI_RATIONAL;
+
+#[repr(C)]
 #[derive(Copy, Clone, Eq)]
 pub struct Ratio {
     pub numerator: u32,
@@ -23,7 +26,17 @@ impl Ratio {
     }
 
     #[inline]
+    pub fn to_f64(&self) -> f64 {
+        self.numerator as f64 / self.denominator as f64
+    }
+
+    #[inline]
     pub fn approximate(f: f32) -> Self {
+        Ratio::new((f * 14400.0) as u32, 14400).simplify()
+    }
+
+    #[inline]
+    pub fn approximate_64(f: f64) -> Self {
         Ratio::new((f * 14400.0) as u32, 14400).simplify()
     }
 
@@ -53,6 +66,45 @@ impl Ratio {
             numerator: self.numerator / gcd,
             denominator: self.denominator / gcd,
         }
+    }
+}
+
+#[cfg(test)]
+member_compat_test! {
+    ratio_compat:
+    Ratio <=> DXGI_RATIONAL {
+        numerator <=> Numerator,
+        denominator <=> Denominator,
+    }
+}
+
+// This is safe because of the test above
+impl From<DXGI_RATIONAL> for Ratio {
+    #[inline]
+    fn from(ratio: DXGI_RATIONAL) -> Ratio {
+        unsafe { std::mem::transmute(ratio) }
+    }
+}
+
+// This is safe because of the test above
+impl From<Ratio> for DXGI_RATIONAL {
+    #[inline]
+    fn from(ratio: Ratio) -> DXGI_RATIONAL {
+        unsafe { std::mem::transmute(ratio) }
+    }
+}
+
+impl From<u32> for Ratio {
+    #[inline]
+    fn from(n: u32) -> Ratio {
+        Ratio::new(n, 1)
+    }
+}
+
+impl From<(u32, u32)> for Ratio {
+    #[inline]
+    fn from((n, d): (u32, u32)) -> Ratio {
+        Ratio::new(n, d)
     }
 }
 
@@ -89,13 +141,6 @@ impl Ord for Ratio {
     fn cmp(&self, other: &Ratio) -> Ordering {
         let (lhs, rhs) = self.common_denominator(other);
         lhs.numerator.cmp(&rhs.numerator)
-    }
-}
-
-impl From<(u32, u32)> for Ratio {
-    #[inline]
-    fn from((n, d): (u32, u32)) -> Ratio {
-        Ratio::new(n, d)
     }
 }
 
@@ -141,7 +186,10 @@ fn test_approximate() {
 #[cfg(test)]
 #[test]
 fn test_ord() {
-    assert_eq!(Ratio::new(1, 3).common_denominator(&Ratio::new(1, 5)), (Ratio::new(5, 15), Ratio::new(3, 15)));
+    assert_eq!(
+        Ratio::new(1, 3).common_denominator(&Ratio::new(1, 5)),
+        (Ratio::new(5, 15), Ratio::new(3, 15))
+    );
 
     assert!(Ratio::new(1, 30) > Ratio::new(1, 60));
     assert!(Ratio::new(2, 72) > Ratio::new(1, 72));
