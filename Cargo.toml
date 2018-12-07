@@ -9,7 +9,7 @@ description = """
 Provides a convenient, higher level wrapping of the DXGI APIs. Targetting dxgi 1.2 stuff
 that works on Windows 7.
 """
-edition = "2015"
+edition = "2018"
 
 [features]
 support_windows_vista = []
