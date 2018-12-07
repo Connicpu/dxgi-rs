@@ -1,5 +1,5 @@
-use enums::AdapterFlags;
-use helpers::wstrlens;
+use crate::enums::AdapterFlags;
+use crate::helpers::wstrlens;
 
 use winapi::shared::dxgi::DXGI_ADAPTER_DESC;
 use winapi::shared::dxgi::DXGI_ADAPTER_DESC1;

@@ -1,4 +1,4 @@
-use error::Error;
+use crate::error::Error;
 
 use com_wrapper::ComWrapper;
 use winapi::ctypes::c_void;

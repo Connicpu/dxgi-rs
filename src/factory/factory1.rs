@@ -1,5 +1,5 @@
-use adapter::adapter1::Adapter1;
-use factory::FactoryType;
+use crate::adapter::adapter1::Adapter1;
+use crate::factory::FactoryType;
 
 use com_wrapper::ComWrapper;
 use winapi::shared::dxgi::IDXGIFactory1;

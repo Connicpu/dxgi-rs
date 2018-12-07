@@ -1,8 +1,8 @@
-use adapter::Adapter;
-use adapter::AdapterType;
-use descriptions::AdapterDesc1;
-use factory::FactoryType;
-use helpers::deref_com_wrapper;
+use crate::adapter::Adapter;
+use crate::adapter::AdapterType;
+use crate::descriptions::AdapterDesc1;
+use crate::factory::FactoryType;
+use crate::helpers::deref_com_wrapper;
 
 use std::fmt;
 use std::mem;

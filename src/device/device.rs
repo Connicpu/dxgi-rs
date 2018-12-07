@@ -1,5 +1,5 @@
-use adapter::Adapter;
-use error::Error;
+use crate::adapter::Adapter;
+use crate::error::Error;
 
 use std::ptr;
 

@@ -1,4 +1,4 @@
-use output::Output;
+use crate::output::Output;
 
 use com_wrapper::ComWrapper;
 

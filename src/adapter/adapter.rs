@@ -1,9 +1,9 @@
-use adapter::AdapterType;
-use descriptions::AdapterDesc;
-use error::Error;
-use factory::factory::Factory;
-use factory::FactoryType;
-use output::Output;
+use crate::adapter::AdapterType;
+use crate::descriptions::AdapterDesc;
+use crate::error::Error;
+use crate::factory::factory::Factory;
+use crate::factory::FactoryType;
+use crate::output::Output;
 
 use com_wrapper::ComWrapper;
 use winapi::shared::dxgi::IDXGIAdapter;

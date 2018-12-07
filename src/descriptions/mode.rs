@@ -1,5 +1,5 @@
-use descriptions::Ratio;
-use enums::{Format, ModeScaling, ModeScanlineOrder};
+use crate::descriptions::Ratio;
+use crate::enums::{Format, ModeScaling, ModeScanlineOrder};
 
 use checked_enum::UncheckedEnum;
 use winapi::shared::dxgitype::DXGI_MODE_DESC;

@@ -1,8 +1,8 @@
-use descriptions::{FrameStatistics, GammaControl, GammaControlCaps, Mode, OutputDesc};
-use device::Device;
-use enums::Format;
-use error::Error;
-use surface::Surface;
+use crate::descriptions::{FrameStatistics, GammaControl, GammaControlCaps, Mode, OutputDesc};
+use crate::device::Device;
+use crate::enums::Format;
+use crate::error::Error;
+use crate::surface::Surface;
 use winapi::shared::winerror::SUCCEEDED;
 
 use com_wrapper::ComWrapper;

@@ -1,4 +1,4 @@
-use enums::ResourcePriority;
+use crate::enums::ResourcePriority;
 
 use winapi::shared::dxgi::IDXGIResource;
 use winapi::shared::winerror::SUCCEEDED;

@@ -1,7 +1,7 @@
-use descriptions::DBool;
-use descriptions::Ratio;
-use enums::ModeScaling;
-use enums::ModeScanlineOrder;
+use crate::descriptions::DBool;
+use crate::descriptions::Ratio;
+use crate::enums::ModeScaling;
+use crate::enums::ModeScanlineOrder;
 
 use checked_enum::UncheckedEnum;
 use winapi::shared::dxgi1_2::DXGI_SWAP_CHAIN_FULLSCREEN_DESC;

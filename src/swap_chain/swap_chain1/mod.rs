@@ -1,13 +1,13 @@
-use descriptions::{FullscreenDesc, PresentParameters, Rgba, SwapChainDesc1};
-use device::Device;
-use enums::*;
-use error::Error;
-use factory::Factory2;
-use helpers::{deref_com_wrapper, deref_com_wrapper_mut};
-use output::Output;
-use swap_chain::swap_chain::SwapChain;
-use swap_chain::CoreWindowType;
-use swap_chain::SwapChainType;
+use crate::descriptions::{FullscreenDesc, PresentParameters, Rgba, SwapChainDesc1};
+use crate::device::Device;
+use crate::enums::*;
+use crate::error::Error;
+use crate::factory::Factory2;
+use crate::helpers::{deref_com_wrapper, deref_com_wrapper_mut};
+use crate::output::Output;
+use crate::swap_chain::swap_chain::SwapChain;
+use crate::swap_chain::CoreWindowType;
+use crate::swap_chain::SwapChainType;
 
 use com_wrapper::ComWrapper;
 use winapi::shared::dxgi1_2::IDXGISwapChain1;

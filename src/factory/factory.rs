@@ -1,7 +1,7 @@
-use adapter::Adapter;
-use enums::WindowAssociationFlags;
-use error::Error;
-use factory::FactoryType;
+use crate::adapter::Adapter;
+use crate::enums::WindowAssociationFlags;
+use crate::error::Error;
+use crate::factory::FactoryType;
 
 use std::ptr;
 

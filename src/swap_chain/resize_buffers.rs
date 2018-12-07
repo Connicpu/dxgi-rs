@@ -1,6 +1,6 @@
-use error::Error;
-use enums::Format;
-use enums::SwapChainFlags;
+use crate::error::Error;
+use crate::enums::Format;
+use crate::enums::SwapChainFlags;
 
 use checked_enum::UncheckedEnum;
 use winapi::shared::dxgi::IDXGISwapChain;

@@ -1,5 +1,5 @@
-use descriptions::DBool;
-use descriptions::Rgb;
+use crate::descriptions::DBool;
+use crate::descriptions::Rgb;
 
 use winapi::shared::dxgitype::{DXGI_GAMMA_CONTROL, DXGI_GAMMA_CONTROL_CAPABILITIES};
 

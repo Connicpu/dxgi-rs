@@ -1,5 +1,5 @@
-use error::Error;
-use factory::FactoryType;
+use crate::error::Error;
+use crate::factory::FactoryType;
 
 use winapi::shared::dxgi1_2::IDXGIFactory2;
 use winapi::shared::ntdef::HANDLE;

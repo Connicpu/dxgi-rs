@@ -1,6 +1,6 @@
-use descriptions::DBool;
-use enums::ModeRotation;
-use helpers::wstrlens;
+use crate::descriptions::DBool;
+use crate::enums::ModeRotation;
+use crate::helpers::wstrlens;
 
 use checked_enum::UncheckedEnum;
 use math2d::Recti;

@@ -1,6 +1,6 @@
-use descriptions::{DBool, Mode, SampleDesc};
-use enums::Format;
-use enums::{AlphaMode, Scaling, SwapChainFlags, SwapEffect, UsageFlags};
+use crate::descriptions::{DBool, Mode, SampleDesc};
+use crate::enums::Format;
+use crate::enums::{AlphaMode, Scaling, SwapChainFlags, SwapEffect, UsageFlags};
 
 use checked_enum::UncheckedEnum;
 use winapi::shared::dxgi::DXGI_SWAP_CHAIN_DESC;

@@ -1,13 +1,13 @@
-use descriptions::{FrameStatistics, Mode, SwapChainDesc};
-use device_subobject::DeviceSubObject;
-use enums::*;
-use error::Error;
-use helpers::{deref_com_wrapper, deref_com_wrapper_mut};
-use output::Output;
-use swap_chain::resize_buffers::ResizeBuffers;
-use swap_chain::BackbufferTexture;
-use swap_chain::FullscreenState;
-use swap_chain::SwapChainType;
+use crate::descriptions::{FrameStatistics, Mode, SwapChainDesc};
+use crate::device_subobject::DeviceSubObject;
+use crate::enums::*;
+use crate::error::Error;
+use crate::helpers::{deref_com_wrapper, deref_com_wrapper_mut};
+use crate::output::Output;
+use crate::swap_chain::resize_buffers::ResizeBuffers;
+use crate::swap_chain::BackbufferTexture;
+use crate::swap_chain::FullscreenState;
+use crate::swap_chain::SwapChainType;
 
 use com_wrapper::ComWrapper;
 use winapi::shared::dxgi::IDXGISwapChain;

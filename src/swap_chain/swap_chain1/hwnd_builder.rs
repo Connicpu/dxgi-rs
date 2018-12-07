@@ -1,10 +1,10 @@
-use descriptions::{FullscreenDesc, Ratio, SwapChainDesc1};
-use device::Device;
-use enums::*;
-use error::Error;
-use factory::Factory2;
-use output::Output;
-use swap_chain::SwapChain1;
+use crate::descriptions::{FullscreenDesc, Ratio, SwapChainDesc1};
+use crate::device::Device;
+use crate::enums::*;
+use crate::error::Error;
+use crate::factory::Factory2;
+use crate::output::Output;
+use crate::swap_chain::SwapChain1;
 
 use com_wrapper::ComWrapper;
 use winapi::shared::windef::HWND;
