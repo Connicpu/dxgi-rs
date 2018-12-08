@@ -1,7 +1,6 @@
 use crate::adapter::Adapter;
 use crate::enums::WindowAssociationFlags;
 use crate::error::Error;
-use crate::factory::FactoryType;
 
 use std::ptr;
 
@@ -26,7 +25,7 @@ impl Factory {
     /// primary desktop is displayed.
     pub fn adapters(&self) -> AdapterIter {
         AdapterIter {
-            factory: &self.ptr,
+            factory: self,
             adapter: 0,
         }
     }
@@ -55,14 +54,27 @@ impl Factory {
         let hr = self.ptr.MakeWindowAssociation(hwnd, flags.0);
         Error::map(hr, ())
     }
+
+    /// Attempt to get the Nth adapter
+    pub fn enum_adapter(&self, n: u32) -> Option<Adapter> {
+        unsafe {
+            let mut ptr = std::ptr::null_mut();
+            let hr = self.ptr.EnumAdapters(n, &mut ptr);
+            match hr {
+                S_OK => Some(Adapter::from_raw(ptr)),
+                DXGI_ERROR_NOT_FOUND => None,
+                result => unreachable!("{} should not be returned from EnumAdapters1", result),
+            }
+        }
+    }
 }
 
-impl FactoryType for Factory {}
+impl super::FactoryType for Factory {}
 
 #[derive(Copy, Clone)]
 /// An iterator over the graphics adapters on the computer.
 pub struct AdapterIter<'a> {
-    factory: &'a IDXGIFactory,
+    factory: &'a Factory,
     adapter: u32,
 }
 
@@ -70,16 +82,8 @@ impl<'a> Iterator for AdapterIter<'a> {
     type Item = Adapter;
 
     fn next(&mut self) -> Option<Adapter> {
-        unsafe {
-            let mut ptr = ptr::null_mut();
-            let result = self.factory.EnumAdapters(self.adapter, &mut ptr);
-            self.adapter += 1;
-
-            match result {
-                S_OK => Some(Adapter::from_raw(ptr)),
-                DXGI_ERROR_NOT_FOUND => None,
-                result => unreachable!("{} should not be returned from EnumAdapters1", result),
-            }
-        }
+        let result = self.factory.enum_adapter(self.adapter);
+        self.adapter += 1;
+        result
     }
 }

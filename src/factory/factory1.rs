@@ -1,5 +1,4 @@
 use crate::adapter::adapter1::Adapter1;
-use crate::factory::FactoryType;
 
 use com_wrapper::ComWrapper;
 use winapi::shared::dxgi::IDXGIFactory1;
@@ -31,7 +30,7 @@ impl Factory1 {
     }
 
     /// Attempt to get the Nth adapter
-    pub fn adapter(&self, n: u32) -> Option<Adapter1> {
+    pub fn enum_adapter(&self, n: u32) -> Option<Adapter1> {
         unsafe {
             let mut ptr = std::ptr::null_mut();
             let hr = self.ptr.EnumAdapters1(n, &mut ptr);
@@ -44,7 +43,20 @@ impl Factory1 {
     }
 }
 
-impl FactoryType for Factory1 {}
+impl super::FactoryType for Factory1 {}
+
+impl std::ops::Deref for Factory1 {
+    type Target = super::Factory;
+    fn deref(&self) -> &Self::Target {
+        unsafe { crate::helpers::deref_com_wrapper(self) }
+    }
+}
+
+impl std::ops::DerefMut for Factory1 {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        unsafe { crate::helpers::deref_com_wrapper_mut(self) }
+    }
+}
 
 #[derive(Copy, Clone)]
 /// An iterator over the graphics adapters on the computer.
@@ -57,7 +69,7 @@ impl<'a> Iterator for AdapterIter1<'a> {
     type Item = Adapter1;
 
     fn next(&mut self) -> Option<Adapter1> {
-        let result = self.factory.adapter(self.adapter);
+        let result = self.factory.enum_adapter(self.adapter);
         self.adapter += 1;
         result
     }

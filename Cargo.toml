@@ -10,6 +10,7 @@ Provides a convenient, higher level wrapping of the DXGI APIs. Targetting dxgi 1
 that works on Windows 7.
 """
 edition = "2018"
+workspace = ".."
 
 [features]
 support_windows_vista = []

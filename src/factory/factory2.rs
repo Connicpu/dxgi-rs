@@ -1,5 +1,4 @@
 use crate::error::Error;
-use crate::factory::FactoryType;
 
 use winapi::shared::dxgi1_2::IDXGIFactory2;
 use winapi::shared::ntdef::HANDLE;
@@ -12,14 +11,13 @@ use wio::com::ComPtr;
 #[repr(transparent)]
 /// The Factory2 interface is required to create a newer version swap chain with more
 /// features than SwapChain and to monitor stereoscopic 3D capabilities.
-/// 
+///
 /// Supported: Windows 8 and Platform Update for Windows 7
 pub struct Factory2 {
     ptr: ComPtr<IDXGIFactory2>,
 }
 
 impl Factory2 {
-
     pub fn is_windowed_stereo_enabled(&self) -> bool {
         unsafe { self.ptr.IsWindowedStereoEnabled() != 0 }
     }
@@ -45,7 +43,20 @@ impl Factory2 {
     }
 }
 
-impl FactoryType for Factory2 {}
+impl super::FactoryType for Factory2 {}
+
+impl std::ops::Deref for Factory2 {
+    type Target = super::Factory1;
+    fn deref(&self) -> &Self::Target {
+        unsafe { crate::helpers::deref_com_wrapper(self) }
+    }
+}
+
+impl std::ops::DerefMut for Factory2 {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        unsafe { crate::helpers::deref_com_wrapper_mut(self) }
+    }
+}
 
 pub trait StatusEventReceiver {
     fn register(self, token: RegisterStatusToken) -> Result<StatusEventCookie, Error>;

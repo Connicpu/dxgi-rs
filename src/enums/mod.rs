@@ -1,31 +1,33 @@
 #[doc(inline)]
-pub use crate::enums::adapter_flags::AdapterFlags;
+pub use self::adapter_flags::AdapterFlags;
 #[doc(inline)]
-pub use crate::enums::alpha_mode::AlphaMode;
+pub use self::alpha_mode::AlphaMode;
 #[doc(inline)]
-pub use crate::enums::format::Format;
+pub use self::format::Format;
 #[doc(inline)]
-pub use crate::enums::map_flags::MapFlags;
+pub use self::map_flags::MapFlags;
 #[doc(inline)]
-pub use crate::enums::mode_rotation::ModeRotation;
+pub use self::mode_rotation::ModeRotation;
 #[doc(inline)]
-pub use crate::enums::mode_scaling::ModeScaling;
+pub use self::mode_scaling::ModeScaling;
 #[doc(inline)]
-pub use crate::enums::mode_scanline_order::ModeScanlineOrder;
+pub use self::mode_scanline_order::ModeScanlineOrder;
 #[doc(inline)]
-pub use crate::enums::mwa_flags::WindowAssociationFlags;
+pub use self::mwa_flags::WindowAssociationFlags;
 #[doc(inline)]
-pub use crate::enums::present_flags::PresentFlags;
+pub use self::present_flags::PresentFlags;
 #[doc(inline)]
-pub use crate::enums::resource_priority::ResourcePriority;
+pub use self::resource_priority::ResourcePriority;
 #[doc(inline)]
-pub use crate::enums::scaling::Scaling;
+pub use self::scaling::Scaling;
 #[doc(inline)]
-pub use crate::enums::swap_chain_flags::SwapChainFlags;
+pub use self::swap_chain_flags::SwapChainFlags;
 #[doc(inline)]
-pub use crate::enums::swap_effect::SwapEffect;
+pub use self::swap_effect::SwapEffect;
 #[doc(inline)]
-pub use crate::enums::usage_flags::UsageFlags;
+pub use self::gpu_preference::GpuPreference;
+#[doc(inline)]
+pub use self::usage_flags::UsageFlags;
 
 mod adapter_flags;
 mod alpha_mode;
@@ -41,3 +43,4 @@ mod scaling;
 mod swap_chain_flags;
 mod swap_effect;
 mod usage_flags;
+mod gpu_preference;
