@@ -1,3 +1,5 @@
+use crate::enums::FactoryCreationFlags;
+
 use winapi::shared::dxgi1_3::IDXGIFactory3;
 use wio::com::ComPtr;
 
@@ -8,7 +10,11 @@ pub struct Factory3 {
     ptr: ComPtr<IDXGIFactory3>,
 }
 
-impl Factory3 {}
+impl Factory3 {
+    pub fn creation_flags(&self) -> FactoryCreationFlags {
+        unsafe { FactoryCreationFlags(self.ptr.GetCreationFlags()) }
+    }
+}
 
 impl super::FactoryType for Factory3 {}
 

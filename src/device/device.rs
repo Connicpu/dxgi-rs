@@ -45,3 +45,5 @@ impl Device {
         }
     }
 }
+
+impl super::DeviceType for Device {}

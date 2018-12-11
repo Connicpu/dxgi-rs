@@ -5,6 +5,10 @@ use winapi::shared::dxgi::IDXGIFactory1;
 use winapi::shared::winerror::{DXGI_ERROR_NOT_FOUND, S_OK};
 use wio::com::ComPtr;
 
+pub use self::iter::AdapterIter1;
+
+mod iter;
+
 #[derive(Clone, PartialEq, ComWrapper)]
 #[com(send, sync, debug)]
 #[repr(transparent)]
@@ -58,19 +62,4 @@ impl std::ops::DerefMut for Factory1 {
     }
 }
 
-#[derive(Copy, Clone)]
-/// An iterator over the graphics adapters on the computer.
-pub struct AdapterIter1<'a> {
-    factory: &'a Factory1,
-    adapter: u32,
-}
 
-impl<'a> Iterator for AdapterIter1<'a> {
-    type Item = Adapter1;
-
-    fn next(&mut self) -> Option<Adapter1> {
-        let result = self.factory.enum_adapter(self.adapter);
-        self.adapter += 1;
-        result
-    }
-}

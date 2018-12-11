@@ -10,6 +10,10 @@ use winapi::shared::windef::HWND;
 use winapi::shared::winerror::{DXGI_ERROR_NOT_FOUND, S_OK};
 use wio::com::ComPtr;
 
+pub use self::iter::AdapterIter;
+
+mod iter;
+
 #[derive(Clone, PartialEq, ComWrapper)]
 #[com(send, sync, debug)]
 #[repr(transparent)]
@@ -71,19 +75,4 @@ impl Factory {
 
 impl super::FactoryType for Factory {}
 
-#[derive(Copy, Clone)]
-/// An iterator over the graphics adapters on the computer.
-pub struct AdapterIter<'a> {
-    factory: &'a Factory,
-    adapter: u32,
-}
 
-impl<'a> Iterator for AdapterIter<'a> {
-    type Item = Adapter;
-
-    fn next(&mut self) -> Option<Adapter> {
-        let result = self.factory.enum_adapter(self.adapter);
-        self.adapter += 1;
-        result
-    }
-}

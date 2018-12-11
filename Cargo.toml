@@ -12,9 +12,6 @@ that works on Windows 7.
 edition = "2018"
 workspace = ".."
 
-[features]
-support_windows_vista = []
-
 [target.'cfg(windows)'.dependencies]
 wio = "0.2.0"
 checked-enum = "0.1.1-alpha1"
@@ -23,7 +20,7 @@ com-wrapper = "0.1.0-alpha2"
 derive-com-wrapper = "0.1.0-alpha4"
 
 [target.'cfg(windows)'.dependencies.math2d]
-version = "0.1.3"
+version = "0.2.0-alpha1"
 features = ["d2d"]
 path = "../math2d"
 

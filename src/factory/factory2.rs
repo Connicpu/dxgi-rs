@@ -1,10 +1,15 @@
 use crate::error::Error;
 
 use winapi::shared::dxgi1_2::IDXGIFactory2;
-use winapi::shared::ntdef::HANDLE;
-use winapi::shared::windef::HWND;
-use winapi::shared::winerror::SUCCEEDED;
 use wio::com::ComPtr;
+
+use self::register::RegisterStatus;
+
+pub use self::register::RegisterStatusToken;
+pub use self::register::StatusEventCookie;
+pub use self::register::StatusEventReceiver;
+
+mod register;
 
 #[derive(Clone, PartialEq, ComWrapper)]
 #[com(send, sync, debug)]
@@ -22,14 +27,23 @@ impl Factory2 {
         unsafe { self.ptr.IsWindowedStereoEnabled() != 0 }
     }
 
-    pub fn register_status(
+    pub fn register_occlusion_status(
         &self,
-        event: RegisterStatus,
         receiver: impl StatusEventReceiver,
     ) -> Result<StatusEventCookie, Error> {
         receiver.register(RegisterStatusToken {
             factory: &self.ptr,
-            event,
+            event: RegisterStatus::Occlusion,
+        })
+    }
+
+    pub fn register_stereo_status(
+        &self,
+        receiver: impl StatusEventReceiver,
+    ) -> Result<StatusEventCookie, Error> {
+        receiver.register(RegisterStatusToken {
+            factory: &self.ptr,
+            event: RegisterStatus::Stereo,
         })
     }
 
@@ -55,63 +69,5 @@ impl std::ops::Deref for Factory2 {
 impl std::ops::DerefMut for Factory2 {
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { crate::helpers::deref_com_wrapper_mut(self) }
-    }
-}
-
-pub trait StatusEventReceiver {
-    fn register(self, token: RegisterStatusToken) -> Result<StatusEventCookie, Error>;
-}
-
-#[derive(Copy, Clone, Debug)]
-pub struct StatusEventCookie(u32, RegisterStatus);
-
-pub struct RegisterStatusToken<'a> {
-    factory: &'a IDXGIFactory2,
-    event: RegisterStatus,
-}
-
-#[derive(Copy, Clone, Debug)]
-pub enum RegisterStatus {
-    Stereo,
-    Occlusion,
-}
-
-impl<'a> RegisterStatusToken<'a> {
-    pub unsafe fn register_window(
-        self,
-        window: HWND,
-        message: u32,
-    ) -> Result<StatusEventCookie, Error> {
-        let mut cookie = 0;
-        let hr = match self.event {
-            RegisterStatus::Stereo => {
-                self.factory
-                    .RegisterStereoStatusWindow(window, message, &mut cookie)
-            }
-            RegisterStatus::Occlusion => {
-                self.factory
-                    .RegisterOcclusionStatusWindow(window, message, &mut cookie)
-            }
-        };
-        if SUCCEEDED(hr) {
-            Ok(StatusEventCookie(cookie, self.event))
-        } else {
-            Err(hr.into())
-        }
-    }
-
-    pub unsafe fn register_event(self, event: HANDLE) -> Result<StatusEventCookie, Error> {
-        let mut cookie = 0;
-        let hr = match self.event {
-            RegisterStatus::Stereo => self.factory.RegisterStereoStatusEvent(event, &mut cookie),
-            RegisterStatus::Occlusion => self
-                .factory
-                .RegisterOcclusionStatusEvent(event, &mut cookie),
-        };
-        if SUCCEEDED(hr) {
-            Ok(StatusEventCookie(cookie, self.event))
-        } else {
-            Err(hr.into())
-        }
     }
 }

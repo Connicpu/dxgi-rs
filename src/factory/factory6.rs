@@ -9,7 +9,6 @@ use winapi::shared::winerror::{DXGI_ERROR_NOT_FOUND, S_OK};
 use winapi::Interface;
 use wio::com::ComPtr;
 
-#[doc(inline)]
 pub use self::iter::AdapterIterByPreference;
 
 mod iter;

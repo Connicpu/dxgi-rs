@@ -2,6 +2,10 @@ use std::ops::Deref;
 
 use com_wrapper::ComWrapper;
 
+pub use self::optional_fn::OptionalFn;
+
+mod optional_fn;
+
 #[cfg(test)]
 pub struct StructSizeTracker {
     pub size: usize,
@@ -153,4 +157,53 @@ pub fn wstrlens(pwstr: &[u16]) -> usize {
         len += 1;
     }
     len
+}
+
+pub struct MemoryDbgHelper(pub u64);
+
+impl std::fmt::Debug for MemoryDbgHelper {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
+        static LEVELS: &[&str] = &["B", "KB", "MB", "GB", "TB", "PB"];
+
+        let mut amount = self.0 as f64;
+        let mut level = 0;
+        for _ in 0..LEVELS.len() {
+            if amount < 1024.0 {
+                break;
+            }
+
+            level += 1;
+            amount /= 1024.0;
+        }
+
+        if level > 0 && amount < 10.0 {
+            write!(fmt, "{:.2}{}", amount, LEVELS[level])
+        } else if level > 0 && amount < 100.0 {
+            write!(fmt, "{:.1}{}", amount, LEVELS[level])
+        } else {
+            write!(fmt, "{:.0}{}", amount, LEVELS[level])
+        }
+    }
+}
+
+#[test]
+fn memory_dbg_helper() {
+    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(0) * 1)), "1B");
+    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(0) * 10)), "10B");
+    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(0) * 100)), "100B");
+    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(1) * 1)), "1.00KB");
+    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(1) * 10)), "10.0KB");
+    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(1) * 100)), "100KB");
+    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(2) * 1)), "1.00MB");
+    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(2) * 10)), "10.0MB");
+    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(2) * 100)), "100MB");
+    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(3) * 1)), "1.00GB");
+    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(3) * 10)), "10.0GB");
+    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(3) * 100)), "100GB");
+    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(4) * 1)), "1.00TB");
+    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(4) * 10)), "10.0TB");
+    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(4) * 100)), "100TB");
+    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(5) * 1)), "1.00PB");
+    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(5) * 10)), "10.0PB");
+    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(5) * 100)), "100PB");
 }
