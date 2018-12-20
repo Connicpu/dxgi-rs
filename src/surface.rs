@@ -1,5 +1,5 @@
 use crate::enums::{Format, MapFlags};
-use crate::error::Error;
+use dcommon::error::Error;
 
 use std::mem;
 use std::slice;

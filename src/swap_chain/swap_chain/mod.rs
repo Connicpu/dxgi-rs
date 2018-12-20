@@ -1,7 +1,7 @@
 use crate::descriptions::{FrameStatistics, Mode, SwapChainDesc};
 use crate::device_subobject::DeviceSubObject;
 use crate::enums::*;
-use crate::error::Error;
+use dcommon::error::Error;
 use crate::helpers::{deref_com_wrapper, deref_com_wrapper_mut};
 use crate::output::Output;
 use crate::swap_chain::resize_buffers::ResizeBuffers;

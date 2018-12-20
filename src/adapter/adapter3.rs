@@ -1,4 +1,4 @@
-use crate::error::Error;
+use dcommon::error::Error;
 use crate::helpers::deref_com_wrapper;
 
 use winapi::shared::dxgi1_4::IDXGIAdapter3;

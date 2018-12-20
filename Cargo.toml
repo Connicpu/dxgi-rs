@@ -19,6 +19,10 @@ auto-enum = "0.2.0-alpha1"
 com-wrapper = "0.1.0-alpha2"
 derive-com-wrapper = "0.1.0-alpha4"
 
+[target.'cfg(windows)'.dependencies.dcommon]
+version = "0.3.0-alpha1"
+path = "../dcommon"
+
 [target.'cfg(windows)'.dependencies.math2d]
 version = "0.2.0-alpha1"
 features = ["d2d"]

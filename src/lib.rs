@@ -23,7 +23,6 @@ pub mod descriptions;
 pub mod device;
 pub mod device_subobject;
 pub mod enums;
-pub mod error;
 pub mod factory;
 pub mod features;
 pub mod output;

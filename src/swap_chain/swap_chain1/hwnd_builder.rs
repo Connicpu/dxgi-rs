@@ -1,7 +1,7 @@
 use crate::descriptions::{FullscreenDesc, Ratio, SwapChainDesc1};
 use crate::device::Device;
 use crate::enums::*;
-use crate::error::Error;
+use dcommon::error::Error;
 use crate::factory::Factory2;
 use crate::output::Output;
 use crate::swap_chain::SwapChain1;
@@ -57,21 +57,21 @@ impl<'a> SwapChainHwndBuilder<'a> {
 
     #[inline]
     /// Required
-    pub fn hwnd(mut self, hwnd: HWND) -> Self {
+    pub fn with_hwnd(mut self, hwnd: HWND) -> Self {
         self.hwnd = hwnd;
         self
     }
 
     #[inline]
     /// Optional
-    pub fn restrict_output(mut self, out: &'a Output) -> Self {
+    pub fn with_restrict_output(mut self, out: &'a Output) -> Self {
         self.restrict_out = Some(out);
         self
     }
 
     #[inline]
     /// Default is 0x0 (i.e. auto-detect)
-    pub fn size(mut self, width: u32, height: u32) -> Self {
+    pub fn with_size(mut self, width: u32, height: u32) -> Self {
         self.desc.width = width;
         self.desc.height = height;
         self
@@ -79,14 +79,14 @@ impl<'a> SwapChainHwndBuilder<'a> {
 
     #[inline]
     /// Default RGBA8 UNORM
-    pub fn format(mut self, format: Format) -> Self {
+    pub fn with_format(mut self, format: Format) -> Self {
         self.desc.format = format.into();
         self
     }
 
     #[inline]
     /// Enable MSAA. Default is 1, 0
-    pub fn samples(mut self, count: u32, quality: u32) -> Self {
+    pub fn with_samples(mut self, count: u32, quality: u32) -> Self {
         self.desc.sample_desc.count = count;
         self.desc.sample_desc.quality = quality;
         self
@@ -94,35 +94,35 @@ impl<'a> SwapChainHwndBuilder<'a> {
 
     #[inline]
     /// Default is BACK_BUFFER | RENDER_TARGET_OUTPUT
-    pub fn buffer_usage(mut self, usage: UsageFlags) -> Self {
+    pub fn with_buffer_usage(mut self, usage: UsageFlags) -> Self {
         self.desc.buffer_usage = usage.into();
         self
     }
 
     #[inline]
     /// Default is 2
-    pub fn buffer_count(mut self, count: u32) -> Self {
+    pub fn with_buffer_count(mut self, count: u32) -> Self {
         self.desc.buffer_count = count;
         self
     }
 
     #[inline]
     /// Default is Stretch
-    pub fn scaling(mut self, scaling: Scaling) -> Self {
+    pub fn with_scaling(mut self, scaling: Scaling) -> Self {
         self.desc.scaling = scaling.into();
         self
     }
 
     #[inline]
     /// Default is Discard
-    pub fn swap_effect(mut self, effect: SwapEffect) -> Self {
+    pub fn with_swap_effect(mut self, effect: SwapEffect) -> Self {
         self.desc.swap_effect = effect.into();
         self
     }
 
     #[inline]
     /// Default is Unspecified
-    pub fn with_alpha_mode(mut self, mode: AlphaMode) -> Self {
+    pub fn with_with_alpha_mode(mut self, mode: AlphaMode) -> Self {
         self.desc.alpha_mode = mode.into();
         self
     }

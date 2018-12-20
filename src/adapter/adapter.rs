@@ -1,6 +1,6 @@
 use crate::adapter::AdapterType;
 use crate::descriptions::AdapterDesc;
-use crate::error::Error;
+use dcommon::error::Error;
 use crate::factory::Factory;
 use crate::factory::FactoryType;
 use crate::output::Output;

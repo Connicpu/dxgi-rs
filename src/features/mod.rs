@@ -1,3 +1,5 @@
+pub use self::allow_tearing::AllowTearing;
+
 mod allow_tearing;
 
 pub unsafe trait Feature {

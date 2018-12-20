@@ -23,6 +23,8 @@ pub use self::rgb::*;
 #[doc(inline)]
 pub use self::sample::*;
 #[doc(inline)]
+pub use self::query_video_memory_info::QueryVideoMemoryInfo;
+#[doc(inline)]
 pub use self::swap_chain::*;
 
 mod adapter;
@@ -39,3 +41,4 @@ mod rgb;
 mod sample;
 mod surface;
 mod swap_chain;
+mod query_video_memory_info;

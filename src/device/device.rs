@@ -1,5 +1,5 @@
 use crate::adapter::Adapter;
-use crate::error::Error;
+use dcommon::error::Error;
 
 use std::ptr;
 

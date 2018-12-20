@@ -1,6 +1,7 @@
 use crate::descriptions::AdapterDesc3;
 use crate::helpers::deref_com_wrapper;
 
+use dcommon::error::Error;
 use winapi::shared::dxgi1_6::IDXGIAdapter4;
 use winapi::shared::winerror::SUCCEEDED;
 use wio::com::ComPtr;
@@ -19,8 +20,8 @@ impl Adapter4 {
             let hr = self.ptr.GetDesc3(&mut desc);
             assert!(
                 SUCCEEDED(hr),
-                "hr that shouldn't fail, failed: {}",
-                crate::error::Error(hr).get_message()
+                "hr that shouldn't fail, failed: {:?}",
+                Error(hr)
             );
             desc.into()
         }

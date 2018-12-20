@@ -1,4 +1,4 @@
-use crate::error::Error;
+use dcommon::error::Error;
 use crate::enums::Format;
 use crate::enums::SwapChainFlags;
 

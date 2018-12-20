@@ -1,6 +1,6 @@
 use crate::adapter::AdapterType;
 use crate::enums::GpuPreference;
-use crate::error::Error;
+use dcommon::error::Error;
 
 use std::marker::PhantomData;
 

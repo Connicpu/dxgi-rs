@@ -1,5 +1,5 @@
 use crate::adapter::AdapterType;
-use crate::error::Error;
+use dcommon::error::Error;
 
 use winapi::shared::dxgi1_4::IDXGIFactory4;
 use winapi::um::winnt::LUID;

@@ -1,6 +1,6 @@
 use crate::adapter::Adapter;
 use crate::enums::WindowAssociationFlags;
-use crate::error::Error;
+use dcommon::error::Error;
 
 use std::ptr;
 

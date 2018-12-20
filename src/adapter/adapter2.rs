@@ -1,8 +1,9 @@
 use crate::descriptions::AdapterDesc2;
 use crate::helpers::deref_com_wrapper;
 
-use winapi::shared::winerror::SUCCEEDED;
+use dcommon::error::Error;
 use winapi::shared::dxgi1_2::IDXGIAdapter2;
+use winapi::shared::winerror::SUCCEEDED;
 use wio::com::ComPtr;
 
 #[repr(transparent)]
@@ -19,8 +20,8 @@ impl Adapter2 {
             let hr = self.ptr.GetDesc2(&mut desc);
             assert!(
                 SUCCEEDED(hr),
-                "hr that shouldn't fail, failed: {}",
-                crate::error::Error(hr).get_message()
+                "hr that shouldn't fail, failed: {:?}",
+                Error(hr)
             );
             desc.into()
         }

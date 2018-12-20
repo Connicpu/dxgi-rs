@@ -1,7 +1,7 @@
 use crate::descriptions::{FullscreenDesc, PresentParameters, Rgba, SwapChainDesc1};
 use crate::device::Device;
 use crate::enums::*;
-use crate::error::Error;
+use dcommon::error::Error;
 use crate::factory::Factory2;
 use crate::helpers::{deref_com_wrapper, deref_com_wrapper_mut};
 use crate::output::Output;

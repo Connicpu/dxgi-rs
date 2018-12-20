@@ -1,4 +1,4 @@
-use crate::error::Error;
+use dcommon::error::Error;
 
 use winapi::shared::dxgi1_2::IDXGIFactory2;
 use wio::com::ComPtr;

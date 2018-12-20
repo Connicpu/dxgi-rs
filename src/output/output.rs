@@ -1,7 +1,7 @@
 use crate::descriptions::{FrameStatistics, GammaControl, GammaControlCaps, Mode, OutputDesc};
 use crate::device::Device;
 use crate::enums::Format;
-use crate::error::Error;
+use dcommon::error::Error;
 use crate::surface::Surface;
 use winapi::shared::winerror::SUCCEEDED;
 
