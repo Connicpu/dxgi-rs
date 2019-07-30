@@ -1,5 +1,7 @@
-use winapi::shared::dxgi::IDXGIDevice1;
+use winapi::shared::dxgi::{IDXGIDevice, IDXGIDevice1};
 use wio::com::ComPtr;
+
+use crate::device::IDevice;
 
 #[derive(Clone, PartialEq, ComWrapper)]
 #[com(send, sync, debug)]
@@ -8,17 +10,18 @@ pub struct Device1 {
     ptr: ComPtr<IDXGIDevice1>,
 }
 
-impl super::DeviceType for Device1 {}
+pub unsafe trait IDevice1 {
+    unsafe fn raw_dev1(&self) -> &IDXGIDevice1;
+}
 
-impl std::ops::Deref for Device1 {
-    type Target = super::Device;
-    fn deref(&self) -> &Self::Target {
-        unsafe { crate::helpers::deref_com_wrapper(self) }
+unsafe impl IDevice for Device1 {
+    unsafe fn raw_dev(&self) -> &IDXGIDevice {
+        &self.ptr
     }
 }
 
-impl std::ops::DerefMut for Device1 {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        unsafe { crate::helpers::deref_com_wrapper_mut(self) }
+unsafe impl IDevice1 for Device1 {
+    unsafe fn raw_dev1(&self) -> &IDXGIDevice1 {
+        &self.ptr
     }
 }

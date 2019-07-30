@@ -1,5 +1,5 @@
 use crate::descriptions::{FrameStatistics, GammaControl, GammaControlCaps, Mode, OutputDesc};
-use crate::device::Device;
+use crate::device::IDevice;
 use crate::enums::Format;
 use dcommon::error::Error;
 use crate::surface::Surface;
@@ -68,11 +68,11 @@ impl Output {
     pub fn find_closest_matching_mode(
         &self,
         mode: &Mode,
-        device: Option<&Device>,
+        device: Option<&dyn IDevice>,
     ) -> Result<Mode, Error> {
         unsafe {
-            let dev = device
-                .map(|d| d.get_raw() as *mut IUnknown)
+            let dev: *mut IUnknown = device
+                .map(|d| d.raw_dev() as *const _ as *mut _)
                 .unwrap_or(std::ptr::null_mut());
 
             let mut matching = std::mem::zeroed();
@@ -115,9 +115,9 @@ impl Output {
     /// [`DXGI_ERROR_NOT_CURRENTLY_AVAILABLE`][1].
     ///
     /// [1]: https://docs.microsoft.com/en-us/windows/desktop/direct3ddxgi/dxgi-error#DXGI_ERROR_NOT_CURRENTLY_AVAILABLE
-    pub unsafe fn take_ownership(&self, device: &Device, exclusive: bool) -> Result<(), Error> {
-        let dev = device.get_raw();
-        let hr = self.ptr.TakeOwnership(dev as *mut _, exclusive as BOOL);
+    pub unsafe fn take_ownership(&self, device: &dyn IDevice, exclusive: bool) -> Result<(), Error> {
+        let dev = device.raw_dev() as *const _ as *mut _;
+        let hr = self.ptr.TakeOwnership(dev, exclusive as BOOL);
         Error::map(hr, ())
     }
 

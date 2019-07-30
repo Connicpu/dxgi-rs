@@ -1,5 +1,5 @@
 use crate::descriptions::{FullscreenDesc, PresentParameters, Rgba, SwapChainDesc1};
-use crate::device::Device;
+use crate::device::IDevice;
 use crate::enums::*;
 use dcommon::error::Error;
 use crate::factory::Factory2;
@@ -28,7 +28,7 @@ pub struct SwapChain1 {
 }
 
 impl SwapChain1 {
-    pub fn create_hwnd<'a>(factory: &'a Factory2, device: &'a Device) -> SwapChainHwndBuilder<'a> {
+    pub fn create_hwnd<'a>(factory: &'a Factory2, device: &'a dyn IDevice) -> SwapChainHwndBuilder<'a> {
         SwapChainHwndBuilder::create(factory, device)
     }
 

@@ -1,5 +1,5 @@
 use crate::descriptions::{FullscreenDesc, Ratio, SwapChainDesc1};
-use crate::device::Device;
+use crate::device::IDevice;
 use crate::enums::*;
 use dcommon::error::Error;
 use crate::factory::Factory2;
@@ -13,7 +13,7 @@ use winapi::shared::windef::HWND;
 /// Builder for a swap chain.
 pub struct SwapChainHwndBuilder<'a> {
     factory: &'a Factory2,
-    device: &'a Device,
+    device: &'a dyn IDevice,
     hwnd: HWND,
     desc: SwapChainDesc1,
     fs_desc: FullscreenDesc,
@@ -22,7 +22,7 @@ pub struct SwapChainHwndBuilder<'a> {
 
 impl<'a> SwapChainHwndBuilder<'a> {
     #[inline]
-    pub(crate) fn create(factory: &'a Factory2, device: &'a Device) -> Self {
+    pub(crate) fn create(factory: &'a Factory2, device: &'a dyn IDevice) -> Self {
         SwapChainHwndBuilder {
             factory,
             device,
@@ -41,7 +41,7 @@ impl<'a> SwapChainHwndBuilder<'a> {
             let factory = self.factory.get_raw();
             let mut ptr = std::ptr::null_mut();
             let hr = (*factory).CreateSwapChainForHwnd(
-                self.device.get_raw() as *mut _,
+                self.device.raw_dev() as *const _ as *mut _,
                 self.hwnd,
                 &self.desc.into(),
                 &self.fs_desc.into(),

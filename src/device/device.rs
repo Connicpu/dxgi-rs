@@ -31,13 +31,14 @@ pub struct Device {
     ptr: ComPtr<IDXGIDevice>,
 }
 
-impl Device {
+pub unsafe trait IDevice {
+    unsafe fn raw_dev(&self) -> &IDXGIDevice;
+
     /// Returns the adapter associated with this device.
-    #[inline]
-    pub fn adapter(&self) -> Result<Adapter, Error> {
+    fn adapter(&self) -> Result<Adapter, Error> {
         unsafe {
             let mut ptr = ptr::null_mut();
-            let hr = self.ptr.GetAdapter(&mut ptr);
+            let hr = self.raw_dev().GetAdapter(&mut ptr);
             Error::map(hr, ())?;
             let mut ptr1 = ptr::null_mut();
             let hr = (*ptr).QueryInterface(&IDXGIAdapter1::uuidof(), &mut ptr1);
@@ -46,4 +47,8 @@ impl Device {
     }
 }
 
-impl super::DeviceType for Device {}
+unsafe impl IDevice for Device {
+    unsafe fn raw_dev(&self) -> &IDXGIDevice {
+        &self.ptr
+    }
+}
