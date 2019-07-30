@@ -52,9 +52,3 @@ unsafe impl IDevice for Device {
         &self.ptr
     }
 }
-
-unsafe impl IDevice for &dyn IDevice {
-    unsafe fn raw_dev(&self) -> &IDXGIDevice {
-        <dyn IDevice>::raw_dev(self)
-    }
-}
