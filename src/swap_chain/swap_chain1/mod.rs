@@ -1,14 +1,15 @@
 use crate::descriptions::{FullscreenDesc, PresentParameters, Rgba, SwapChainDesc1};
 use crate::device::IDevice;
+use crate::device_subobject::IDeviceSubObject;
 use crate::enums::*;
-use dcommon::error::Error;
 use crate::factory::Factory2;
-use crate::helpers::{deref_com_wrapper, deref_com_wrapper_mut};
 use crate::output::Output;
-use crate::swap_chain::swap_chain::SwapChain;
+use crate::swap_chain::swap_chain::ISwapChain;
 use crate::swap_chain::CoreWindowType;
 
 use com_wrapper::ComWrapper;
+use dcommon::error::Error;
+use winapi::shared::dxgi::{IDXGIDeviceSubObject, IDXGISwapChain};
 use winapi::shared::dxgi1_2::IDXGISwapChain1;
 use winapi::shared::windef::HWND;
 use winapi::shared::winerror::SUCCEEDED;
@@ -27,32 +28,39 @@ pub struct SwapChain1 {
 }
 
 impl SwapChain1 {
-    pub fn create_hwnd<'a>(factory: &'a Factory2, device: &'a dyn IDevice) -> SwapChainHwndBuilder<'a> {
+    pub fn create_hwnd<'a>(
+        factory: &'a Factory2,
+        device: &'a dyn IDevice,
+    ) -> SwapChainHwndBuilder<'a> {
         SwapChainHwndBuilder::create(factory, device)
     }
+}
 
-    pub fn desc(&self) -> SwapChainDesc1 {
+pub unsafe trait ISwapChain1: ISwapChain {
+    unsafe fn raw_sc1(&self) -> &IDXGISwapChain1;
+
+    fn desc(&self) -> SwapChainDesc1 {
         unsafe {
             let mut scd = std::mem::zeroed();
-            let hr = self.ptr.GetDesc1(&mut scd);
+            let hr = self.raw_sc1().GetDesc1(&mut scd);
             assert!(SUCCEEDED(hr));
             scd.into()
         }
     }
 
-    pub fn fullscreen_desc(&self) -> FullscreenDesc {
+    fn fullscreen_desc(&self) -> FullscreenDesc {
         unsafe {
             let mut fd = std::mem::zeroed();
-            let hr = self.ptr.GetFullscreenDesc(&mut fd);
+            let hr = self.raw_sc1().GetFullscreenDesc(&mut fd);
             assert!(SUCCEEDED(hr));
             fd.into()
         }
     }
 
-    pub fn hwnd(&self) -> Option<HWND> {
+    fn hwnd(&self) -> Option<HWND> {
         unsafe {
             let mut hwnd = std::ptr::null_mut();
-            let hr = self.ptr.GetHwnd(&mut hwnd);
+            let hr = self.raw_sc1().GetHwnd(&mut hwnd);
             if SUCCEEDED(hr) {
                 Some(hwnd)
             } else {
@@ -61,10 +69,15 @@ impl SwapChain1 {
         }
     }
 
-    pub fn core_window<W: CoreWindowType>(&self) -> Option<W> {
+    fn core_window<W: CoreWindowType>(&self) -> Option<W>
+    where
+        Self: Sized,
+    {
         unsafe {
             let mut ptr = std::ptr::null_mut();
-            let hr = self.ptr.GetCoreWindow(&W::Interface::uuidof(), &mut ptr);
+            let hr = self
+                .raw_sc1()
+                .GetCoreWindow(&W::Interface::uuidof(), &mut ptr);
             if SUCCEEDED(hr) {
                 Some(W::from_raw(ptr as _))
             } else {
@@ -73,7 +86,7 @@ impl SwapChain1 {
         }
     }
 
-    pub fn present1(
+    fn present1(
         &mut self,
         sync_interval: u32,
         flags: PresentFlags,
@@ -81,20 +94,20 @@ impl SwapChain1 {
     ) -> Result<(), Error> {
         unsafe {
             let hr = self
-                .ptr
+                .raw_sc1()
                 .Present1(sync_interval, flags.0, &parameters.into());
             Error::map(hr, ())
         }
     }
 
-    pub fn is_temporary_mono_supported(&self) -> bool {
-        unsafe { self.ptr.IsTemporaryMonoSupported() != 0 }
+    fn is_temporary_mono_supported(&self) -> bool {
+        unsafe { self.raw_sc1().IsTemporaryMonoSupported() != 0 }
     }
 
-    pub fn restrict_to_output(&self) -> Option<Output> {
+    fn restrict_to_output(&self) -> Option<Output> {
         unsafe {
             let mut ptr = std::ptr::null_mut();
-            let hr = self.ptr.GetRestrictToOutput(&mut ptr);
+            let hr = self.raw_sc1().GetRestrictToOutput(&mut ptr);
             if SUCCEEDED(hr) {
                 Some(Output::from_raw(ptr))
             } else {
@@ -103,17 +116,19 @@ impl SwapChain1 {
         }
     }
 
-    pub fn set_background_color(&mut self, bg: &Rgba) -> Result<(), Error> {
+    fn set_background_color(&mut self, bg: &Rgba) -> Result<(), Error> {
         unsafe {
-            let hr = self.ptr.SetBackgroundColor(bg as *const _ as *const _);
+            let hr = self
+                .raw_sc1()
+                .SetBackgroundColor(bg as *const _ as *const _);
             Error::map(hr, ())
         }
     }
 
-    pub fn background_color(&self) -> Option<Rgba> {
+    fn background_color(&self) -> Option<Rgba> {
         unsafe {
             let mut color = std::mem::zeroed();
-            let hr = self.ptr.GetBackgroundColor(&mut color);
+            let hr = self.raw_sc1().GetBackgroundColor(&mut color);
             if SUCCEEDED(hr) {
                 Some(color.into())
             } else {
@@ -122,32 +137,37 @@ impl SwapChain1 {
         }
     }
 
-    pub fn set_rotation(&mut self, rot: ModeRotation) -> Result<(), Error> {
+    fn set_rotation(&mut self, rot: ModeRotation) -> Result<(), Error> {
         unsafe {
-            let hr = self.ptr.SetRotation(rot as u32);
+            let hr = self.raw_sc1().SetRotation(rot as u32);
             Error::map(hr, ())
         }
     }
 
-    pub fn rotation(&self) -> Result<ModeRotation, Error> {
+    fn rotation(&self) -> Result<ModeRotation, Error> {
         unsafe {
             let mut rot = 0;
-            let hr = self.ptr.GetRotation(&mut rot);
+            let hr = self.raw_sc1().GetRotation(&mut rot);
             let rot = ModeRotation::from_u32(rot).unwrap_or(ModeRotation::Unspecified);
             Error::map(hr, rot)
         }
     }
 }
 
-impl std::ops::Deref for SwapChain1 {
-    type Target = SwapChain;
-    fn deref(&self) -> &SwapChain {
-        unsafe { deref_com_wrapper(self) }
+unsafe impl IDeviceSubObject for SwapChain1 {
+    unsafe fn raw_dso(&self) -> &IDXGIDeviceSubObject {
+        &self.ptr
     }
 }
 
-impl std::ops::DerefMut for SwapChain1 {
-    fn deref_mut(&mut self) -> &mut SwapChain {
-        unsafe { deref_com_wrapper_mut(self) }
+unsafe impl ISwapChain for SwapChain1 {
+    unsafe fn raw_sc(&self) -> &IDXGISwapChain {
+        &self.ptr
+    }
+}
+
+unsafe impl ISwapChain1 for SwapChain1 {
+    unsafe fn raw_sc1(&self) -> &IDXGISwapChain1 {
+        &self.ptr
     }
 }
