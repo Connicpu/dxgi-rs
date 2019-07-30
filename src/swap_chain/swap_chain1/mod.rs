@@ -7,7 +7,6 @@ use crate::helpers::{deref_com_wrapper, deref_com_wrapper_mut};
 use crate::output::Output;
 use crate::swap_chain::swap_chain::SwapChain;
 use crate::swap_chain::CoreWindowType;
-use crate::swap_chain::SwapChainType;
 
 use com_wrapper::ComWrapper;
 use winapi::shared::dxgi1_2::IDXGISwapChain1;
@@ -139,8 +138,6 @@ impl SwapChain1 {
         }
     }
 }
-
-impl SwapChainType for SwapChain1 {}
 
 impl std::ops::Deref for SwapChain1 {
     type Target = SwapChain;

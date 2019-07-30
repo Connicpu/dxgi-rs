@@ -9,4 +9,12 @@ pub struct DeviceSubObject {
     ptr: ComPtr<IDXGIDeviceSubObject>,
 }
 
-pub trait GraphicsDevice: ComWrapper {}
+pub unsafe trait IDeviceSubObject {
+    unsafe fn raw_dso(&self) -> &IDXGIDeviceSubObject;
+}
+
+unsafe impl IDeviceSubObject for DeviceSubObject {
+    unsafe fn raw_dso(&self) -> &IDXGIDeviceSubObject {
+        &self.ptr
+    }
+}
