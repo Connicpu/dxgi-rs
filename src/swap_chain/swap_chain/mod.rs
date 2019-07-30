@@ -41,6 +41,7 @@ pub unsafe trait ISwapChain: IDeviceSubObject {
 
     fn buffer<B>(&self, buffer: u32) -> Result<B, Error>
     where
+        Self: Sized,
         B: BackbufferTexture,
     {
         unsafe {
