@@ -1,6 +1,10 @@
-use dcommon::error::Error;
-use crate::helpers::deref_com_wrapper;
+use crate::adapter::AdapterType;
+use crate::adapter::{IAdapter, IAdapter1, IAdapter2};
 
+use com_wrapper::ComWrapper;
+use dcommon::error::Error;
+use winapi::shared::dxgi::{IDXGIAdapter, IDXGIAdapter1};
+use winapi::shared::dxgi1_2::IDXGIAdapter2;
 use winapi::shared::dxgi1_4::IDXGIAdapter3;
 use wio::com::ComPtr;
 
@@ -16,33 +20,52 @@ pub struct Adapter3 {
     ptr: ComPtr<IDXGIAdapter3>,
 }
 
-impl Adapter3 {
-    pub fn register_hcpt_event(&self, event: &impl EventHandle) -> Result<HcptStatusCookie, Error> {
+pub unsafe trait IAdapter3: IAdapter2 {
+    fn register_hcpt_event(&self, event: &dyn EventHandle) -> Result<HcptStatusCookie, Error> {
         unsafe {
             let mut c = 0;
             let hr = self
-                .ptr
+                .raw_adp3()
                 .RegisterHardwareContentProtectionTeardownStatusEvent(event.get_handle(), &mut c);
             Error::map_if(hr, || HcptStatusCookie(c))
         }
     }
 
-    pub fn register_vmbc_event(&self, event: &impl EventHandle) -> Result<VmbcStatusCookie, Error> {
+    fn register_vmbc_event(&self, event: &dyn EventHandle) -> Result<VmbcStatusCookie, Error> {
         unsafe {
             let mut c = 0;
             let hr = self
-                .ptr
+                .raw_adp3()
                 .RegisterVideoMemoryBudgetChangeNotificationEvent(event.get_handle(), &mut c);
             Error::map_if(hr, || VmbcStatusCookie(c))
         }
     }
+
+    unsafe fn raw_adp3(&self) -> &IDXGIAdapter3;
 }
 
-impl std::ops::Deref for Adapter3 {
-    type Target = super::Adapter2;
-    fn deref(&self) -> &Self::Target {
-        unsafe { deref_com_wrapper(self) }
+unsafe impl IAdapter for Adapter3 {
+    unsafe fn raw_adp(&self) -> &IDXGIAdapter {
+        &self.ptr
     }
 }
 
-impl super::AdapterType for Adapter3 {}
+unsafe impl IAdapter1 for Adapter3 {
+    unsafe fn raw_adp1(&self) -> &IDXGIAdapter1 {
+        &self.ptr
+    }
+}
+
+unsafe impl IAdapter2 for Adapter3 {
+    unsafe fn raw_adp2(&self) -> &IDXGIAdapter2 {
+        &self.ptr
+    }
+}
+
+unsafe impl IAdapter3 for Adapter3 {
+    unsafe fn raw_adp3(&self) -> &IDXGIAdapter3 {
+        &self.ptr
+    }
+}
+
+unsafe impl AdapterType for Adapter3 {}

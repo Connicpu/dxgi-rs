@@ -1,4 +1,4 @@
-#[auto_enum(u32, checked)]
+#[auto_enum::auto_enum(u32, checked)]
 /// Indicates how an image is stretched to fit a given monitor's resolution.
 pub enum ModeScaling {
     /// Unspecified, the meaning of this is contextual to the API

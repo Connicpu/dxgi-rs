@@ -1,7 +1,10 @@
+use crate::adapter::AdapterType;
+use crate::adapter::{IAdapter, IAdapter1};
 use crate::descriptions::AdapterDesc2;
-use crate::helpers::deref_com_wrapper;
 
+use com_wrapper::ComWrapper;
 use dcommon::error::Error;
+use winapi::shared::dxgi::{IDXGIAdapter, IDXGIAdapter1};
 use winapi::shared::dxgi1_2::IDXGIAdapter2;
 use winapi::shared::winerror::SUCCEEDED;
 use wio::com::ComPtr;
@@ -13,11 +16,11 @@ pub struct Adapter2 {
     ptr: ComPtr<IDXGIAdapter2>,
 }
 
-impl Adapter2 {
-    pub fn desc(&self) -> AdapterDesc2 {
+pub unsafe trait IAdapter2: IAdapter1 {
+    fn desc2(&self) -> AdapterDesc2 {
         unsafe {
             let mut desc = std::mem::zeroed();
-            let hr = self.ptr.GetDesc2(&mut desc);
+            let hr = self.raw_adp2().GetDesc2(&mut desc);
             assert!(
                 SUCCEEDED(hr),
                 "hr that shouldn't fail, failed: {:?}",
@@ -26,13 +29,26 @@ impl Adapter2 {
             desc.into()
         }
     }
+
+    unsafe fn raw_adp2(&self) -> &IDXGIAdapter2;
 }
 
-impl std::ops::Deref for Adapter2 {
-    type Target = super::Adapter1;
-    fn deref(&self) -> &Self::Target {
-        unsafe { deref_com_wrapper(self) }
+unsafe impl IAdapter for Adapter2 {
+    unsafe fn raw_adp(&self) -> &IDXGIAdapter {
+        &self.ptr
     }
 }
 
-impl super::AdapterType for Adapter2 {}
+unsafe impl IAdapter1 for Adapter2 {
+    unsafe fn raw_adp1(&self) -> &IDXGIAdapter1 {
+        &self.ptr
+    }
+}
+
+unsafe impl IAdapter2 for Adapter2 {
+    unsafe fn raw_adp2(&self) -> &IDXGIAdapter2 {
+        &self.ptr
+    }
+}
+
+unsafe impl AdapterType for Adapter2 {}

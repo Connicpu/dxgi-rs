@@ -1,15 +1,15 @@
-#[enum_flags(u32)]
+#[auto_enum::enum_flags(u32)]
 /// Flags for surface and resource creation options.
-/// 
+///
 /// These flag options are used when you create a swap chain to describe the
 /// surface usage and CPU access options for the back buffer of a swap chain.
 /// You can't use the `SHARED`, `DISCARD_ON_PRESENT`, and `READ_ONLY` values
 /// as input to create a swap chain. However, DXGI can set `DISCARD_ON_PRESENT`
 /// and `READ_ONLY` for some of the swap chain's back buffers on the
 /// application's behalf.
-/// 
+///
 /// These flags are also used when you create a [`Surface`][1].
-/// 
+///
 /// [1]: ../struct.Surface.html
 pub enum UsageFlags {
     /// No usage flags enabled. This is not particularly useful.
@@ -17,7 +17,7 @@ pub enum UsageFlags {
 
     /// No CPU access. Maps should be validated to fail on this access.
     CPU_ACCESS_NONE = 0,
-    
+
     /// Frequent CPU write-only access, high-performance GPU read-only access.
     CPU_ACCESS_DYNAMIC = 1,
 
@@ -52,7 +52,7 @@ pub enum UsageFlags {
 
     /// This flag is for internal use only.
     DISCARD_ON_PRESENT = 1 << (5 + 4),
-    
+
     /// Use the surface or resource for unordered access.
     UNORDERED_ACCESS = 1 << (6 + 4),
 }

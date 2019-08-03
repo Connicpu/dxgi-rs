@@ -37,8 +37,6 @@ impl SwapChain1 {
 }
 
 pub unsafe trait ISwapChain1: ISwapChain {
-    unsafe fn raw_sc1(&self) -> &IDXGISwapChain1;
-
     fn desc(&self) -> SwapChainDesc1 {
         unsafe {
             let mut scd = std::mem::zeroed();
@@ -73,17 +71,7 @@ pub unsafe trait ISwapChain1: ISwapChain {
     where
         Self: Sized,
     {
-        unsafe {
-            let mut ptr = std::ptr::null_mut();
-            let hr = self
-                .raw_sc1()
-                .GetCoreWindow(&W::Interface::uuidof(), &mut ptr);
-            if SUCCEEDED(hr) {
-                Some(W::from_raw(ptr as _))
-            } else {
-                None
-            }
-        }
+        imp_core_window(self)
     }
 
     fn present1(
@@ -150,6 +138,28 @@ pub unsafe trait ISwapChain1: ISwapChain {
             let hr = self.raw_sc1().GetRotation(&mut rot);
             let rot = ModeRotation::from_u32(rot).unwrap_or(ModeRotation::Unspecified);
             Error::map(hr, rot)
+        }
+    }
+
+    unsafe fn raw_sc1(&self) -> &IDXGISwapChain1;
+}
+
+impl dyn ISwapChain1 + '_ {
+    pub fn core_window<W: CoreWindowType>(&self) -> Option<W> {
+        imp_core_window(self)
+    }
+}
+
+fn imp_core_window<W: CoreWindowType>(swap: &dyn ISwapChain1) -> Option<W> {
+    unsafe {
+        let mut ptr = std::ptr::null_mut();
+        let hr = swap
+            .raw_sc1()
+            .GetCoreWindow(&W::Interface::uuidof(), &mut ptr);
+        if SUCCEEDED(hr) {
+            Some(W::from_raw(ptr as _))
+        } else {
+            None
         }
     }
 }

@@ -32,8 +32,6 @@ pub struct Device {
 }
 
 pub unsafe trait IDevice {
-    unsafe fn raw_dev(&self) -> &IDXGIDevice;
-
     /// Returns the adapter associated with this device.
     fn adapter(&self) -> Result<Adapter, Error> {
         unsafe {
@@ -45,6 +43,8 @@ pub unsafe trait IDevice {
             Error::map_if(hr, || Adapter::from_raw(ptr1 as *mut _))
         }
     }
+
+    unsafe fn raw_dev(&self) -> &IDXGIDevice;
 }
 
 unsafe impl IDevice for Device {

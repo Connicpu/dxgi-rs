@@ -1,14 +1,14 @@
 use crate::descriptions::{FrameStatistics, Mode, SwapChainDesc};
+use crate::device_subobject::IDeviceSubObject;
 use crate::enums::*;
 use crate::output::Output;
 use crate::swap_chain::resize_buffers::ResizeBuffers;
 use crate::swap_chain::BackbufferTexture;
 use crate::swap_chain::FullscreenState;
-use crate::device_subobject::IDeviceSubObject;
 
-use dcommon::error::Error;
 use com_wrapper::ComWrapper;
-use winapi::shared::dxgi::{IDXGISwapChain, IDXGIDeviceSubObject};
+use dcommon::error::Error;
+use winapi::shared::dxgi::{IDXGIDeviceSubObject, IDXGISwapChain};
 use winapi::shared::winerror::{SUCCEEDED, S_OK};
 use winapi::Interface;
 use wio::com::ComPtr;
@@ -21,8 +21,6 @@ pub struct SwapChain {
 }
 
 pub unsafe trait ISwapChain: IDeviceSubObject {
-    unsafe fn raw_sc(&self) -> &IDXGISwapChain;
-
     fn desc(&self) -> SwapChainDesc {
         unsafe {
             let mut scd = std::mem::zeroed();
@@ -44,12 +42,7 @@ pub unsafe trait ISwapChain: IDeviceSubObject {
         Self: Sized,
         B: BackbufferTexture,
     {
-        unsafe {
-            let uuid = B::Interface::uuidof();
-            let mut ptr = std::ptr::null_mut();
-            let hr = self.raw_sc().GetBuffer(buffer, &uuid, &mut ptr);
-            Error::map_if(hr, || B::from_raw(ptr as _))
-        }
+        imp_buffer(self, buffer)
     }
 
     fn set_fullscreen_state(&mut self, state: FullscreenState) -> Result<(), Error> {
@@ -139,6 +132,8 @@ pub unsafe trait ISwapChain: IDeviceSubObject {
             }
         }
     }
+
+    unsafe fn raw_sc(&self) -> &IDXGISwapChain;
 }
 
 unsafe impl IDeviceSubObject for SwapChain {
@@ -150,5 +145,40 @@ unsafe impl IDeviceSubObject for SwapChain {
 unsafe impl ISwapChain for SwapChain {
     unsafe fn raw_sc(&self) -> &IDXGISwapChain {
         &self.ptr
+    }
+}
+
+impl dyn ISwapChain + '_ {
+    pub fn buffer_dyn<B>(&self, buffer: u32) -> Result<B, Error>
+    where
+        B: BackbufferTexture,
+    {
+        imp_buffer(self, buffer)
+    }
+}
+
+fn imp_buffer<B>(swap: &dyn ISwapChain, buffer: u32) -> Result<B, Error>
+where
+    B: BackbufferTexture,
+{
+    unsafe {
+        let uuid = B::Interface::uuidof();
+        let mut ptr = std::ptr::null_mut();
+        let hr = swap.raw_sc().GetBuffer(buffer, &uuid, &mut ptr);
+        Error::map_if(hr, || B::from_raw(ptr as _))
+    }
+}
+
+#[cfg(test)]
+mod call_buffer_on_dyn_swap {
+    #![allow(dead_code)]
+    use super::*;
+
+    fn get_a_buffer<B: BackbufferTexture>(swap: &dyn ISwapChain) -> Result<B, Error> {
+        swap.buffer_dyn(0)
+    }
+
+    fn get_a_buffer_mono<B: BackbufferTexture>(swap: &impl ISwapChain) -> Result<B, Error> {
+        swap.buffer(0)
     }
 }

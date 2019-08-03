@@ -1,10 +1,10 @@
-#[auto_enum(u32, checked)]
+#[auto_enum::auto_enum(u32, checked)]
 /// Identifies the alpha transparency behavior of a surface
 pub enum AlphaMode {
     /// Unspecified, the meaning of this is contextual to the API
     /// currently in use.
     Unspecified = 0,
-    
+
     /// Indicates that the transparency behavior is premultiplied. Each color
     /// is first scaled by the alpha value. The alpha value itself is the same
     /// in both straight and premultiplied alpha. Typically, no color channel

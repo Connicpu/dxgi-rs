@@ -1,12 +1,13 @@
 use crate::adapter::AdapterType;
 use crate::descriptions::AdapterDesc;
-use dcommon::error::Error;
 use crate::factory::Factory;
 use crate::factory::FactoryType;
 use crate::output::Output;
 
 use com_wrapper::ComWrapper;
+use dcommon::error::Error;
 use winapi::shared::dxgi::IDXGIAdapter;
+use winapi::shared::guiddef::GUID;
 use winapi::shared::minwindef::HMODULE;
 use winapi::shared::winerror::{DXGI_ERROR_NOT_FOUND, SUCCEEDED, S_OK};
 use winapi::Interface;
@@ -22,7 +23,6 @@ pub struct Adapter {
 }
 
 impl Adapter {
-    #[inline]
     /// Create an adapter interface that represents a software adapter.
     ///
     /// A software adapter is a DLL that implements the entirety of a device
@@ -42,44 +42,80 @@ impl Adapter {
 
         Ok(Adapter::from_raw(ptr))
     }
+}
 
+pub unsafe trait IAdapter {
     /// Gets a description of the adapter (or video card).
-    #[inline]
-    pub fn desc(&self) -> AdapterDesc {
+    fn desc(&self) -> AdapterDesc {
         unsafe {
             let mut desc = std::mem::zeroed();
-            let hr = self.ptr.GetDesc(&mut desc);
+            let hr = self.raw_adp().GetDesc(&mut desc);
             assert!(SUCCEEDED(hr));
             desc.into()
         }
     }
 
-    /// Create an iterator that enumerates over the outputs associated with
-    /// this adapter.
-    #[inline]
-    pub fn outputs(&self) -> OutputIter {
-        OutputIter {
-            adapter: &self.ptr,
-            output: 0,
-        }
-    }
-
-    /// Get the DXGI Factory associated with this adapter.
-    #[inline]
-    pub fn factory<F: FactoryType>(&self) -> Option<F> {
+    /// Checks if an interface is supported by the adapter, e.g. ID3D10Device::uuidof(). Returns
+    /// the version number of the usermode driver if it is, None otherwise.
+    fn check_interface_support(&self, guid: &GUID) -> Option<i64> {
         unsafe {
-            let mut ptr = std::ptr::null_mut();
-            let hr = self.ptr.GetParent(&F::Interface::uuidof(), &mut ptr);
-            if SUCCEEDED(hr) {
-                Some(F::from_raw(ptr as _))
+            let mut version = std::mem::zeroed();
+            let hr = self.raw_adp().CheckInterfaceSupport(guid, &mut version);
+            if hr == S_OK {
+                Some(*version.QuadPart())
             } else {
                 None
             }
         }
     }
+
+    /// Create an iterator that enumerates over the outputs associated with
+    /// this adapter.
+    fn outputs(&self) -> OutputIter {
+        OutputIter {
+            adapter: unsafe { self.raw_adp() },
+            output: 0,
+        }
+    }
+
+    /// Get the DXGI Factory associated with this adapter.
+    fn factory<F: FactoryType>(&self) -> Option<F>
+    where
+        Self: Sized,
+    {
+        imp_factory(self)
+    }
+
+    unsafe fn raw_adp(&self) -> &IDXGIAdapter;
 }
 
-impl AdapterType for Adapter {}
+impl dyn IAdapter + '_ {
+    pub fn factory<F: FactoryType>(&self) -> Option<F> {
+        imp_factory(self)
+    }
+}
+
+fn imp_factory<F: FactoryType>(adapter: &dyn IAdapter) -> Option<F> {
+    unsafe {
+        let mut ptr = std::ptr::null_mut();
+        let hr = adapter
+            .raw_adp()
+            .GetParent(&F::Interface::uuidof(), &mut ptr);
+        if SUCCEEDED(hr) {
+            Some(F::from_raw(ptr as _))
+        } else {
+            None
+        }
+    }
+}
+
+unsafe impl AdapterType for Adapter {}
+
+unsafe impl IAdapter for Adapter {
+    unsafe fn raw_adp(&self) -> &IDXGIAdapter {
+        &self.ptr
+    }
+}
 
 impl std::fmt::Debug for Adapter {
     fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {

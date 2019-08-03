@@ -1,15 +1,13 @@
-use crate::adapter::Adapter;
 use crate::adapter::AdapterType;
+use crate::adapter::IAdapter;
 use crate::descriptions::AdapterDesc1;
-use crate::factory::FactoryType;
-use crate::helpers::deref_com_wrapper;
 
 use std::fmt;
-use std::mem;
+use std::mem::MaybeUninit;
 
-use winapi::shared::dxgi::IDXGIAdapter1;
+use com_wrapper::ComWrapper;
+use winapi::shared::dxgi::{IDXGIAdapter, IDXGIAdapter1};
 use winapi::shared::winerror::SUCCEEDED;
-use winapi::Interface;
 use wio::com::ComPtr;
 
 #[derive(Clone, PartialEq, ComWrapper)]
@@ -21,46 +19,38 @@ pub struct Adapter1 {
     ptr: ComPtr<IDXGIAdapter1>,
 }
 
-impl Adapter1 {
+pub unsafe trait IAdapter1: IAdapter {
     /// Gets a description of the adapter (or video card).
-    #[inline]
-    pub fn desc(&self) -> AdapterDesc1 {
+    fn desc1(&self) -> AdapterDesc1 {
         unsafe {
-            let mut desc = mem::uninitialized();
-            let hr = self.ptr.GetDesc1(&mut desc);
+            let mut desc = MaybeUninit::uninit();
+            let hr = self.raw_adp1().GetDesc1(desc.as_mut_ptr());
             assert!(SUCCEEDED(hr));
-            desc.into()
+            desc.assume_init().into()
         }
     }
 
-    /// Get the DXGI Factory associated with this adapter.
-    #[inline]
-    pub fn factory<F: FactoryType>(&self) -> Option<F> {
-        unsafe {
-            let mut ptr = std::ptr::null_mut();
-            let hr = self.ptr.GetParent(&F::Interface::uuidof(), &mut ptr);
-            if SUCCEEDED(hr) {
-                Some(F::from_raw(ptr as _))
-            } else {
-                None
-            }
-        }
+    unsafe fn raw_adp1(&self) -> &IDXGIAdapter1;
+}
+
+unsafe impl IAdapter for Adapter1 {
+    unsafe fn raw_adp(&self) -> &IDXGIAdapter {
+        &self.ptr
     }
 }
 
-impl std::ops::Deref for Adapter1 {
-    type Target = Adapter;
-    fn deref(&self) -> &Adapter {
-        unsafe { deref_com_wrapper(self) }
+unsafe impl IAdapter1 for Adapter1 {
+    unsafe fn raw_adp1(&self) -> &IDXGIAdapter1 {
+        &self.ptr
     }
 }
 
-impl AdapterType for Adapter1 {}
+unsafe impl AdapterType for Adapter1 {}
 
 impl fmt::Debug for Adapter1 {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         fmt.debug_struct("Adapter")
-            .field("desc", &self.desc())
+            .field("desc", &self.desc1())
             .finish()
     }
 }

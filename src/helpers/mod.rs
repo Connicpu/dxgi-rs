@@ -1,7 +1,3 @@
-use std::ops::Deref;
-
-use com_wrapper::ComWrapper;
-
 pub use self::optional_fn::OptionalFn;
 
 mod optional_fn;
@@ -111,43 +107,6 @@ macro_rules! member_compat_test {
     };
 }
 
-pub unsafe fn deref_com_wrapper<T, U>(wrapper: &T) -> &U
-where
-    T: ComWrapper,
-    U: ComWrapper,
-    T::Interface: Deref<Target = U::Interface>,
-{
-    assert_eq!(
-        std::mem::size_of::<T>(),
-        std::mem::size_of::<*mut T::Interface>(),
-    );
-    assert_eq!(
-        std::mem::size_of::<U>(),
-        std::mem::size_of::<*mut U::Interface>(),
-    );
-
-    std::mem::transmute::<&T, &U>(wrapper)
-}
-
-pub unsafe fn deref_com_wrapper_mut<T, U>(wrapper: &mut T) -> &mut U
-where
-    T: ComWrapper,
-    U: ComWrapper,
-    T::Interface: Deref<Target = U::Interface>,
-{
-    assert_eq!(std::mem::size_of::<U>(), std::mem::size_of::<T>());
-    assert_eq!(
-        std::mem::size_of::<T>(),
-        std::mem::size_of::<*mut T::Interface>(),
-    );
-    assert_eq!(
-        std::mem::size_of::<U>(),
-        std::mem::size_of::<*mut U::Interface>(),
-    );
-
-    std::mem::transmute::<&mut T, &mut U>(wrapper)
-}
-
 pub fn wstrlens(pwstr: &[u16]) -> usize {
     let mut len = 0;
     for &c in pwstr {
@@ -163,7 +122,7 @@ pub struct MemoryDbgHelper(pub u64);
 
 impl std::fmt::Debug for MemoryDbgHelper {
     fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
-        static LEVELS: &[&str] = &["B", "KB", "MB", "GB", "TB", "PB"];
+        static LEVELS: &[&str] = &["B", "KB", "MB", "GB", "TB", "PB", "EB"];
 
         let mut amount = self.0 as f64;
         let mut level = 0;
@@ -190,20 +149,77 @@ impl std::fmt::Debug for MemoryDbgHelper {
 fn memory_dbg_helper() {
     assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(0) * 1)), "1B");
     assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(0) * 10)), "10B");
-    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(0) * 100)), "100B");
-    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(1) * 1)), "1.00KB");
-    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(1) * 10)), "10.0KB");
-    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(1) * 100)), "100KB");
-    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(2) * 1)), "1.00MB");
-    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(2) * 10)), "10.0MB");
-    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(2) * 100)), "100MB");
-    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(3) * 1)), "1.00GB");
-    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(3) * 10)), "10.0GB");
-    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(3) * 100)), "100GB");
-    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(4) * 1)), "1.00TB");
-    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(4) * 10)), "10.0TB");
-    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(4) * 100)), "100TB");
-    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(5) * 1)), "1.00PB");
-    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(5) * 10)), "10.0PB");
-    assert_eq!(format!("{:?}", MemoryDbgHelper(1024u64.pow(5) * 100)), "100PB");
+    assert_eq!(
+        format!("{:?}", MemoryDbgHelper(1024u64.pow(0) * 100)),
+        "100B"
+    );
+    assert_eq!(
+        format!("{:?}", MemoryDbgHelper(1024u64.pow(1) * 1)),
+        "1.00KB"
+    );
+    assert_eq!(
+        format!("{:?}", MemoryDbgHelper(1024u64.pow(1) * 10)),
+        "10.0KB"
+    );
+    assert_eq!(
+        format!("{:?}", MemoryDbgHelper(1024u64.pow(1) * 100)),
+        "100KB"
+    );
+    assert_eq!(
+        format!("{:?}", MemoryDbgHelper(1024u64.pow(2) * 1)),
+        "1.00MB"
+    );
+    assert_eq!(
+        format!("{:?}", MemoryDbgHelper(1024u64.pow(2) * 10)),
+        "10.0MB"
+    );
+    assert_eq!(
+        format!("{:?}", MemoryDbgHelper(1024u64.pow(2) * 100)),
+        "100MB"
+    );
+    assert_eq!(
+        format!("{:?}", MemoryDbgHelper(1024u64.pow(3) * 1)),
+        "1.00GB"
+    );
+    assert_eq!(
+        format!("{:?}", MemoryDbgHelper(1024u64.pow(3) * 10)),
+        "10.0GB"
+    );
+    assert_eq!(
+        format!("{:?}", MemoryDbgHelper(1024u64.pow(3) * 100)),
+        "100GB"
+    );
+    assert_eq!(
+        format!("{:?}", MemoryDbgHelper(1024u64.pow(4) * 1)),
+        "1.00TB"
+    );
+    assert_eq!(
+        format!("{:?}", MemoryDbgHelper(1024u64.pow(4) * 10)),
+        "10.0TB"
+    );
+    assert_eq!(
+        format!("{:?}", MemoryDbgHelper(1024u64.pow(4) * 100)),
+        "100TB"
+    );
+    assert_eq!(
+        format!("{:?}", MemoryDbgHelper(1024u64.pow(5) * 1)),
+        "1.00PB"
+    );
+    assert_eq!(
+        format!("{:?}", MemoryDbgHelper(1024u64.pow(5) * 10)),
+        "10.0PB"
+    );
+    assert_eq!(
+        format!("{:?}", MemoryDbgHelper(1024u64.pow(5) * 100)),
+        "100PB"
+    );
+    assert_eq!(
+        format!("{:?}", MemoryDbgHelper(1024u64.pow(6) * 1)),
+        "1.00EB"
+    );
+    assert_eq!(
+        format!("{:?}", MemoryDbgHelper(1024u64.pow(6) * 10)),
+        "10.0EB"
+    );
+    assert_eq!(format!("{:?}", MemoryDbgHelper(std::u64::MAX)), "16.0EB");
 }

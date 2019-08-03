@@ -1,4 +1,4 @@
-#[auto_enum(u32, checked)]
+#[auto_enum::auto_enum(u32, checked)]
 pub enum GraphicsPreemptionGranularity {
     DmaBufferBoundary = 0,
     PrimitiveBoundary = 1,
@@ -7,7 +7,7 @@ pub enum GraphicsPreemptionGranularity {
     InstructionBoundary = 4,
 }
 
-#[auto_enum(u32, checked)]
+#[auto_enum::auto_enum(u32, checked)]
 pub enum ComputePreemptionGranularity {
     DmaBufferBoundary = 0,
     DispatchBoundary = 1,

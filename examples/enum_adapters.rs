@@ -1,18 +1,20 @@
 extern crate dxgi;
 extern crate windows_dpi;
 
+use dxgi::adapter::{IAdapter, IAdapter1};
 use dxgi::enums::Format;
-use dxgi::factory::Factory1;
+use dxgi::factory::{Factory1, IFactory1};
+use dxgi::output::IOutput;
 
 fn main() {
     windows_dpi::enable_dpi();
 
     let factory: Factory1 = dxgi::factory::create().unwrap();
 
-    for adapter in factory.adapters() {
+    for adapter in factory.adapters1() {
         assert!(adapter.factory().as_ref() == Some(&factory));
 
-        let desc = adapter.desc();
+        let desc = adapter.desc1();
         println!(
             "Adapter [{}, {}MB]",
             desc.description(),

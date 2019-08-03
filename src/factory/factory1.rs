@@ -1,7 +1,8 @@
 use crate::adapter::adapter1::Adapter1;
+use crate::factory::{FactoryType, IFactory};
 
 use com_wrapper::ComWrapper;
-use winapi::shared::dxgi::IDXGIFactory1;
+use winapi::shared::dxgi::{IDXGIFactory, IDXGIFactory1};
 use winapi::shared::winerror::{DXGI_ERROR_NOT_FOUND, S_OK};
 use wio::com::ComPtr;
 
@@ -17,16 +18,19 @@ pub struct Factory1 {
     ptr: ComPtr<IDXGIFactory1>,
 }
 
-impl Factory1 {
+pub unsafe trait IFactory1: IFactory {
     /// Informs an application of the possible need to re-enumerate adapters.
-    pub fn is_current(&self) -> bool {
-        unsafe { self.ptr.IsCurrent() != 0 }
+    fn is_current(&self) -> bool {
+        unsafe { self.raw_f1().IsCurrent() != 0 }
     }
 
     /// Iterates over all of the adapters (video cards). The first adapter
     /// returned will be the adapter associated with the output on which the
     /// primary desktop is displayed.
-    pub fn adapters(&self) -> AdapterIter1 {
+    fn adapters1(&self) -> AdapterIter1<Self>
+    where
+        Self: Sized,
+    {
         AdapterIter1 {
             factory: self,
             adapter: 0,
@@ -34,10 +38,10 @@ impl Factory1 {
     }
 
     /// Attempt to get the Nth adapter
-    pub fn enum_adapter(&self, n: u32) -> Option<Adapter1> {
+    fn enum_adapter1(&self, n: u32) -> Option<Adapter1> {
         unsafe {
             let mut ptr = std::ptr::null_mut();
-            let hr = self.ptr.EnumAdapters1(n, &mut ptr);
+            let hr = self.raw_f1().EnumAdapters1(n, &mut ptr);
             match hr {
                 S_OK => Some(Adapter1::from_raw(ptr)),
                 DXGI_ERROR_NOT_FOUND => None,
@@ -45,21 +49,32 @@ impl Factory1 {
             }
         }
     }
+
+    unsafe fn raw_f1(&self) -> &IDXGIFactory1;
 }
 
-impl super::FactoryType for Factory1 {}
-
-impl std::ops::Deref for Factory1 {
-    type Target = super::Factory;
-    fn deref(&self) -> &Self::Target {
-        unsafe { crate::helpers::deref_com_wrapper(self) }
+impl dyn IFactory1 + '_ {
+    /// Iterates over all of the adapters (video cards). The first adapter
+    /// returned will be the adapter associated with the output on which the
+    /// primary desktop is displayed.
+    pub fn adapters1_dyn(&self) -> AdapterIter1<Self> {
+        AdapterIter1 {
+            factory: self,
+            adapter: 0,
+        }
     }
 }
 
-impl std::ops::DerefMut for Factory1 {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        unsafe { crate::helpers::deref_com_wrapper_mut(self) }
+unsafe impl IFactory for Factory1 {
+    unsafe fn raw_f(&self) -> &IDXGIFactory {
+        &self.ptr
     }
 }
 
+unsafe impl IFactory1 for Factory1 {
+    unsafe fn raw_f1(&self) -> &IDXGIFactory1 {
+        &self.ptr
+    }
+}
 
+unsafe impl FactoryType for Factory1 {}

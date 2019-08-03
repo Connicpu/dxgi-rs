@@ -1,4 +1,4 @@
-#[auto_enum(u32, checked)]
+#[auto_enum::auto_enum(u32, checked)]
 /// Indicates how the back buffers should be rotated to fit the physical
 /// rotation of a monitor.
 pub enum ModeRotation {

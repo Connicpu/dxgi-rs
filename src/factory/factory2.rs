@@ -1,5 +1,8 @@
-use dcommon::error::Error;
+use crate::factory::{FactoryType, IFactory, IFactory1};
 
+use com_wrapper::ComWrapper;
+use dcommon::error::Error;
+use winapi::shared::dxgi::{IDXGIFactory, IDXGIFactory1};
 use winapi::shared::dxgi1_2::IDXGIFactory2;
 use wio::com::ComPtr;
 
@@ -22,52 +25,87 @@ pub struct Factory2 {
     ptr: ComPtr<IDXGIFactory2>,
 }
 
-impl Factory2 {
-    pub fn is_windowed_stereo_enabled(&self) -> bool {
-        unsafe { self.ptr.IsWindowedStereoEnabled() != 0 }
+pub unsafe trait IFactory2: IFactory1 {
+    fn is_windowed_stereo_enabled(&self) -> bool {
+        unsafe { self.raw_f2().IsWindowedStereoEnabled() != 0 }
     }
 
-    pub fn register_occlusion_status(
+    fn register_occlusion_status(
         &self,
         receiver: impl StatusEventReceiver,
-    ) -> Result<StatusEventCookie, Error> {
+    ) -> Result<StatusEventCookie, Error>
+    where
+        Self: Sized,
+    {
         receiver.register(RegisterStatusToken {
-            factory: &self.ptr,
+            factory: unsafe { self.raw_f2() },
             event: RegisterStatus::Occlusion,
         })
     }
 
-    pub fn register_stereo_status(
+    fn register_stereo_status(
         &self,
         receiver: impl StatusEventReceiver,
-    ) -> Result<StatusEventCookie, Error> {
+    ) -> Result<StatusEventCookie, Error>
+    where
+        Self: Sized,
+    {
         receiver.register(RegisterStatusToken {
-            factory: &self.ptr,
+            factory: unsafe { self.raw_f2() },
             event: RegisterStatus::Stereo,
         })
     }
 
-    pub fn unregister_status(&self, cookie: StatusEventCookie) {
+    fn unregister_status(&self, cookie: StatusEventCookie) {
         unsafe {
             match cookie.1 {
-                RegisterStatus::Stereo => self.ptr.UnregisterStereoStatus(cookie.0),
-                RegisterStatus::Occlusion => self.ptr.UnregisterOcclusionStatus(cookie.0),
+                RegisterStatus::Stereo => self.raw_f2().UnregisterStereoStatus(cookie.0),
+                RegisterStatus::Occlusion => self.raw_f2().UnregisterOcclusionStatus(cookie.0),
             }
         }
     }
+
+    unsafe fn raw_f2(&self) -> &IDXGIFactory2;
 }
 
-impl super::FactoryType for Factory2 {}
+impl dyn IFactory2 + '_ {
+    pub fn register_occlusion_status_dyn(
+        &self,
+        receiver: impl StatusEventReceiver,
+    ) -> Result<StatusEventCookie, Error> {
+        receiver.register(RegisterStatusToken {
+            factory: unsafe { self.raw_f2() },
+            event: RegisterStatus::Occlusion,
+        })
+    }
 
-impl std::ops::Deref for Factory2 {
-    type Target = super::Factory1;
-    fn deref(&self) -> &Self::Target {
-        unsafe { crate::helpers::deref_com_wrapper(self) }
+    pub fn register_stereo_status_dyn(
+        &self,
+        receiver: impl StatusEventReceiver,
+    ) -> Result<StatusEventCookie, Error> {
+        receiver.register(RegisterStatusToken {
+            factory: unsafe { self.raw_f2() },
+            event: RegisterStatus::Stereo,
+        })
     }
 }
 
-impl std::ops::DerefMut for Factory2 {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        unsafe { crate::helpers::deref_com_wrapper_mut(self) }
+unsafe impl IFactory for Factory2 {
+    unsafe fn raw_f(&self) -> &IDXGIFactory {
+        &self.ptr
     }
 }
+
+unsafe impl IFactory1 for Factory2 {
+    unsafe fn raw_f1(&self) -> &IDXGIFactory1 {
+        &self.ptr
+    }
+}
+
+unsafe impl IFactory2 for Factory2 {
+    unsafe fn raw_f2(&self) -> &IDXGIFactory2 {
+        &self.ptr
+    }
+}
+
+unsafe impl FactoryType for Factory2 {}

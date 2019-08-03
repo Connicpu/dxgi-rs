@@ -1,4 +1,4 @@
-#[enum_flags(u32)]
+#[auto_enum::enum_flags(u32)]
 /// Determines CPU memory access to mapped surface memory.
 pub enum MapFlags {
     /// Allow CPU read access.

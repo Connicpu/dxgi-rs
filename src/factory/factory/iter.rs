@@ -1,14 +1,14 @@
-use crate::factory::Factory;
 use crate::adapter::Adapter;
+use crate::factory::IFactory;
 
 #[derive(Copy, Clone)]
 /// An iterator over the graphics adapters on the computer.
-pub struct AdapterIter<'a> {
-    pub(super) factory: &'a Factory,
+pub struct AdapterIter<'a, F: IFactory + ?Sized> {
+    pub(super) factory: &'a F,
     pub(super) adapter: u32,
 }
 
-impl<'a> Iterator for AdapterIter<'a> {
+impl<'a, F: IFactory + ?Sized> Iterator for AdapterIter<'a, F> {
     type Item = Adapter;
 
     fn next(&mut self) -> Option<Adapter> {

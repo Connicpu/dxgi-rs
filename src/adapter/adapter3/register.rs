@@ -1,6 +1,5 @@
-use crate::adapter::adapter3::Adapter3;
+use crate::adapter::adapter3::IAdapter3;
 
-use com_wrapper::ComWrapper;
 use winapi::shared::ntdef::HANDLE;
 
 pub unsafe trait EventHandle {
@@ -11,9 +10,9 @@ pub unsafe trait EventHandle {
 pub struct HcptStatusCookie(pub(super) u32);
 
 impl HcptStatusCookie {
-    pub fn unregister(self, adapter: &Adapter3) {
+    pub fn unregister(self, adapter: &dyn IAdapter3) {
         unsafe {
-            let ptr = &*adapter.get_raw();
+            let ptr = &*adapter.raw_adp3();
             ptr.UnregisterHardwareContentProtectionTeardownStatus(self.0);
         }
     }
@@ -23,9 +22,9 @@ impl HcptStatusCookie {
 pub struct VmbcStatusCookie(pub(super) u32);
 
 impl VmbcStatusCookie {
-    pub fn unregister(self, adapter: &Adapter3) {
+    pub fn unregister(self, adapter: &dyn IAdapter3) {
         unsafe {
-            let ptr = &*adapter.get_raw();
+            let ptr = &*adapter.raw_adp3();
             ptr.UnregisterVideoMemoryBudgetChangeNotification(self.0);
         }
     }

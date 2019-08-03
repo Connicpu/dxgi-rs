@@ -1,14 +1,14 @@
 use crate::descriptions::{FrameStatistics, GammaControl, GammaControlCaps, Mode, OutputDesc};
 use crate::device::IDevice;
 use crate::enums::Format;
-use dcommon::error::Error;
-use crate::surface::Surface;
-use winapi::shared::winerror::SUCCEEDED;
+use crate::surface::ISurface;
 
 use com_wrapper::ComWrapper;
+use dcommon::error::Error;
 use winapi::shared::dxgi::IDXGIOutput;
 use winapi::shared::dxgitype::DXGI_MODE_DESC;
 use winapi::shared::minwindef::BOOL;
+use winapi::shared::winerror::SUCCEEDED;
 use winapi::shared::winerror::{DXGI_ERROR_MORE_DATA, DXGI_ERROR_NOT_CURRENTLY_AVAILABLE, S_OK};
 use winapi::um::unknwnbase::IUnknown;
 use wio::com::ComPtr;
@@ -21,34 +21,36 @@ pub struct Output {
     ptr: ComPtr<IDXGIOutput>,
 }
 
-impl Output {
-    #[inline]
+pub unsafe trait IOutput {
     /// Get a description of the output.
-    pub fn desc(&self) -> OutputDesc {
+    fn desc(&self) -> OutputDesc {
         unsafe {
             let mut desc = std::mem::zeroed();
-            let hr = self.ptr.GetDesc(&mut desc);
+            let hr = self.raw_out().GetDesc(&mut desc);
             assert!(SUCCEEDED(hr));
             desc.into()
         }
     }
 
-    #[inline]
     /// Gets the display modes that match the requested format and other input
     /// options.
-    pub fn modes(&self, format: Format) -> Result<Vec<Mode>, Error> {
+    fn modes(&self, format: Format) -> Result<Vec<Mode>, Error> {
         unsafe {
             let mut buf: Vec<Mode> = Vec::new();
             loop {
                 let mut len = 0;
                 let ptr = std::ptr::null_mut();
-                let hr = self.ptr.GetDisplayModeList(format as u32, 2, &mut len, ptr);
+                let hr = self
+                    .raw_out()
+                    .GetDisplayModeList(format as u32, 2, &mut len, ptr);
                 Error::map(hr, ())?;
 
                 buf.reserve_exact(len as usize);
 
                 let ptr = buf.as_mut_ptr() as *mut DXGI_MODE_DESC;
-                let hr = self.ptr.GetDisplayModeList(format as u32, 2, &mut len, ptr);
+                let hr = self
+                    .raw_out()
+                    .GetDisplayModeList(format as u32, 2, &mut len, ptr);
                 match hr {
                     S_OK => {
                         buf.set_len(len as usize);
@@ -62,10 +64,9 @@ impl Output {
         }
     }
 
-    #[inline]
     /// Finds the display mode that most closely matches the requested display
     /// mode.
-    pub fn find_closest_matching_mode(
+    fn find_closest_matching_mode(
         &self,
         mode: &Mode,
         device: Option<&dyn IDevice>,
@@ -77,23 +78,21 @@ impl Output {
 
             let mut matching = std::mem::zeroed();
             let hr = self
-                .ptr
+                .raw_out()
                 .FindClosestMatchingMode(&(*mode).into(), &mut matching, dev);
 
             Error::map(hr, matching.into())
         }
     }
 
-    #[inline]
     /// Halt a thread until the next vertical blank occurs.
-    pub fn wait_for_vblank(&self) -> Result<(), Error> {
+    fn wait_for_vblank(&self) -> Result<(), Error> {
         unsafe {
-            let hr = self.ptr.WaitForVBlank();
+            let hr = self.raw_out().WaitForVBlank();
             Error::map(hr, ())
         }
     }
 
-    #[inline]
     /// Takes ownership of an output. When you are finished with the output,
     /// call `release_ownership`.
     ///
@@ -115,13 +114,12 @@ impl Output {
     /// [`DXGI_ERROR_NOT_CURRENTLY_AVAILABLE`][1].
     ///
     /// [1]: https://docs.microsoft.com/en-us/windows/desktop/direct3ddxgi/dxgi-error#DXGI_ERROR_NOT_CURRENTLY_AVAILABLE
-    pub unsafe fn take_ownership(&self, device: &dyn IDevice, exclusive: bool) -> Result<(), Error> {
+    unsafe fn take_ownership(&self, device: &dyn IDevice, exclusive: bool) -> Result<(), Error> {
         let dev = device.raw_dev() as *const _ as *mut _;
-        let hr = self.ptr.TakeOwnership(dev, exclusive as BOOL);
+        let hr = self.raw_out().TakeOwnership(dev, exclusive as BOOL);
         Error::map(hr, ())
     }
 
-    #[inline]
     /// Releases ownership of the output.
     ///
     /// If you are not using a swap chain, get access to an output by calling
@@ -137,11 +135,10 @@ impl Output {
     /// should be certain this is the action they would like to take.
     ///
     /// </div>
-    pub unsafe fn release_ownership(&self) {
-        self.ptr.ReleaseOwnership();
+    unsafe fn release_ownership(&self) {
+        self.raw_out().ReleaseOwnership();
     }
 
-    #[inline]
     /// Gets a description of the gamma-control capabilities.
     ///
     /// <div style="padding: 10px 10px 2px 10px; margin: 10px; background-color: #F2F2F2">
@@ -150,15 +147,14 @@ impl Output {
     /// Calling this method is only supported while in full-screen mode.
     ///
     /// </div>
-    pub fn gamma_control_capabilities(&self) -> Result<GammaControlCaps, Error> {
+    fn gamma_control_capabilities(&self) -> Result<GammaControlCaps, Error> {
         unsafe {
             let mut caps = std::mem::zeroed();
-            let hr = self.ptr.GetGammaControlCapabilities(&mut caps);
+            let hr = self.raw_out().GetGammaControlCapabilities(&mut caps);
             Error::map(hr, caps.into())
         }
     }
 
-    #[inline]
     /// Gets the gamma control settings.
     ///
     /// <div style="padding: 10px 10px 2px 10px; margin: 10px; background-color: #F2F2F2">
@@ -167,15 +163,14 @@ impl Output {
     /// Calling this method is only supported while in full-screen mode.
     ///
     /// </div>
-    pub fn gamma_control(&self) -> Result<GammaControl, Error> {
+    fn gamma_control(&self) -> Result<GammaControl, Error> {
         unsafe {
             let mut control = std::mem::zeroed();
-            let hr = self.ptr.GetGammaControl(&mut control);
+            let hr = self.raw_out().GetGammaControl(&mut control);
             Error::map(hr, control.into())
         }
     }
 
-    #[inline]
     /// Sets the gamma controls.
     ///
     /// For info about using gamma correction, see [Using gamma correction][1].
@@ -188,14 +183,13 @@ impl Output {
     /// </div>
     ///
     /// [1]: https://msdn.microsoft.com/97ACDAE3-514E-4AAF-A27D-E5FFC162DB2A
-    pub fn set_gamma_control(&self, control: &GammaControl) -> Result<(), Error> {
+    fn set_gamma_control(&self, control: &GammaControl) -> Result<(), Error> {
         unsafe {
-            let hr = self.ptr.SetGammaControl(&(*control).into());
+            let hr = self.raw_out().SetGammaControl(&(*control).into());
             Error::map(hr, ())
         }
     }
 
-    #[inline]
     /// Gets a copy of the current display surface.
     ///
     /// `get_display_surface_data` can only be called when an output is in
@@ -215,9 +209,11 @@ impl Output {
     ///
     /// [1]: https://docs.rs/direct3d11/*/direct3d11/enums/struct.CpuAccessFlags.html#associatedconstant.WRITE
     /// [2]: https://docs.rs/direct3d11/*/direct3d11/enums/struct.CpuAccessFlags.html#associatedconstant.READWRITE
-    pub fn get_display_surface_data(&self, surface: &Surface) -> Result<(), Error> {
+    fn get_display_surface_data(&self, surface: &dyn ISurface) -> Result<(), Error> {
         unsafe {
-            let hr = self.ptr.GetDisplaySurfaceData(surface.get_raw());
+            let hr = self
+                .raw_out()
+                .GetDisplaySurfaceData(surface.raw_surface() as *const _ as *mut _);
             Error::map(hr, ())
         }
     }
@@ -235,17 +231,26 @@ impl Output {
     /// </div>
     ///
     /// [1]: enums/struct.UsageFlags.html#associatedconstant.BACK_BUFFER
-    pub unsafe fn set_display_surface(&self, surface: &Surface) -> Result<(), Error> {
-        let hr = self.ptr.SetDisplaySurface(surface.get_raw());
+    unsafe fn set_display_surface(&self, surface: &dyn ISurface) -> Result<(), Error> {
+        let hr = self
+            .raw_out()
+            .SetDisplaySurface(surface.raw_surface() as *const _ as *mut _);
         Error::map(hr, ())
     }
 
-    #[inline]
-    pub fn frame_statistics(&self) -> Result<FrameStatistics, Error> {
+    fn frame_statistics(&self) -> Result<FrameStatistics, Error> {
         unsafe {
             let mut stats = std::mem::zeroed();
-            let hr = self.ptr.GetFrameStatistics(&mut stats);
+            let hr = self.raw_out().GetFrameStatistics(&mut stats);
             Error::map(hr, stats.into())
         }
+    }
+
+    unsafe fn raw_out(&self) -> &IDXGIOutput;
+}
+
+unsafe impl IOutput for Output {
+    unsafe fn raw_out(&self) -> &IDXGIOutput {
+        &self.ptr
     }
 }

@@ -1,8 +1,9 @@
+use crate::device::{IDevice, IDevice1};
+
+use com_wrapper::ComWrapper;
 use winapi::shared::dxgi::{IDXGIDevice, IDXGIDevice1};
 use winapi::shared::dxgi1_2::IDXGIDevice2;
 use wio::com::ComPtr;
-
-use crate::device::{IDevice, IDevice1};
 
 #[derive(Clone, PartialEq, ComWrapper)]
 #[com(send, sync, debug)]

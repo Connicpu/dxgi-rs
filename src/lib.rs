@@ -3,12 +3,6 @@
 #![cfg(windows)]
 //#![warn(missing_docs)]
 
-#[macro_use]
-extern crate auto_enum;
-
-#[macro_use]
-extern crate derive_com_wrapper;
-
 extern crate checked_enum;
 extern crate com_wrapper;
 extern crate math2d;

@@ -1,5 +1,5 @@
-use dcommon::error::Error;
 use crate::helpers::OptionalFn;
+use dcommon::error::Error;
 
 use com_wrapper::ComWrapper;
 use winapi::ctypes::c_void;
@@ -11,19 +11,21 @@ use winapi::um::libloaderapi::LoadLibraryA;
 use winapi::Interface;
 
 #[doc(inline)]
-pub use self::factory::{AdapterIter, Factory};
+pub use self::factory::{AdapterIter, Factory, IFactory};
 #[doc(inline)]
-pub use self::factory1::{AdapterIter1, Factory1};
+pub use self::factory1::{AdapterIter1, Factory1, IFactory1};
 #[doc(inline)]
-pub use self::factory2::{Factory2, RegisterStatusToken, StatusEventCookie, StatusEventReceiver};
+pub use self::factory2::{
+    Factory2, IFactory2, RegisterStatusToken, StatusEventCookie, StatusEventReceiver,
+};
 #[doc(inline)]
-pub use self::factory3::Factory3;
+pub use self::factory3::{Factory3, IFactory3};
 #[doc(inline)]
-pub use self::factory4::Factory4;
+pub use self::factory4::{Factory4, IFactory4};
 #[doc(inline)]
-pub use self::factory5::Factory5;
+pub use self::factory5::{Factory5, IFactory5};
 #[doc(inline)]
-pub use self::factory6::{AdapterIterByPreference, Factory6};
+pub use self::factory6::{AdapterIterByPreference, Factory6, IFactory6};
 
 mod factory;
 mod factory1;
@@ -33,15 +35,11 @@ mod factory4;
 mod factory5;
 mod factory6;
 
-pub trait FactoryType: ComWrapper + Clone {
-    /// Try to cast this factory to a different factory type
-    fn try_cast<F: FactoryType>(&self) -> Option<F> {
-        unsafe {
-            let ptr = self.clone().into_ptr();
-            Some(ComWrapper::from_ptr(ptr.cast().ok()?))
-        }
-    }
+pub mod traits {
+    pub use super::{IFactory, IFactory1, IFactory2, IFactory3, IFactory4, IFactory5, IFactory6};
 }
+
+pub unsafe trait FactoryType: ComWrapper + Clone {}
 
 static CREATE_1: OptionalFn<CreateFn> = OptionalFn::new("DXGI.DLL", "CreateDXGIFactory1");
 static CREATE_2: OptionalFn<Create2Fn> = OptionalFn::new("DXGI.DLL", "CreateDXGIFactory2");
@@ -92,4 +90,32 @@ fn init_dxgidebug() {
     INIT.call_once(|| unsafe {
         LoadLibraryA(b"DXGIDEBUG.DLL\0".as_ptr() as _);
     });
+}
+
+#[cfg(test)]
+mod compile_test {
+    #![allow(dead_code)]
+    use super::{traits::*, Factory6};
+
+    fn dyn_factory(f: &Factory6) -> &dyn IFactory {
+        f
+    }
+    fn dyn_factory1(f: &Factory6) -> &dyn IFactory1 {
+        f
+    }
+    fn dyn_factory2(f: &Factory6) -> &dyn IFactory2 {
+        f
+    }
+    fn dyn_factory3(f: &Factory6) -> &dyn IFactory3 {
+        f
+    }
+    fn dyn_factory4(f: &Factory6) -> &dyn IFactory4 {
+        f
+    }
+    fn dyn_factory5(f: &Factory6) -> &dyn IFactory5 {
+        f
+    }
+    fn dyn_factory6(f: &Factory6) -> &dyn IFactory6 {
+        f
+    }
 }

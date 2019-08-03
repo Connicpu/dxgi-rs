@@ -1,7 +1,7 @@
-use crate::helpers::MemoryDbgHelper;
 use crate::descriptions::luid::Luid;
 use crate::enums::{AdapterFlags, ComputePreemptionGranularity, GraphicsPreemptionGranularity};
 use crate::helpers::wstrlens;
+use crate::helpers::MemoryDbgHelper;
 
 use checked_enum::UncheckedEnum;
 use winapi::shared::dxgi::DXGI_ADAPTER_DESC;
@@ -38,9 +38,18 @@ impl std::fmt::Debug for AdapterDesc {
             .field("device_id", &self.device_id)
             .field("subsys_id", &self.subsys_id)
             .field("revision", &self.revision)
-            .field("dedicated_video_memory", &MemoryDbgHelper(self.dedicated_video_memory as u64))
-            .field("dedicated_system_memory", &MemoryDbgHelper(self.dedicated_system_memory as u64))
-            .field("shared_system_memory", &MemoryDbgHelper(self.shared_system_memory as u64))
+            .field(
+                "dedicated_video_memory",
+                &MemoryDbgHelper(self.dedicated_video_memory as u64),
+            )
+            .field(
+                "dedicated_system_memory",
+                &MemoryDbgHelper(self.dedicated_system_memory as u64),
+            )
+            .field(
+                "shared_system_memory",
+                &MemoryDbgHelper(self.shared_system_memory as u64),
+            )
             .field("adapter_luid", &self.adapter_luid)
             .finish()
     }
@@ -104,9 +113,18 @@ impl std::fmt::Debug for AdapterDesc1 {
             .field("device_id", &self.device_id)
             .field("subsys_id", &self.subsys_id)
             .field("revision", &self.revision)
-            .field("dedicated_video_memory", &MemoryDbgHelper(self.dedicated_video_memory as u64))
-            .field("dedicated_system_memory", &MemoryDbgHelper(self.dedicated_system_memory as u64))
-            .field("shared_system_memory", &MemoryDbgHelper(self.shared_system_memory as u64))
+            .field(
+                "dedicated_video_memory",
+                &MemoryDbgHelper(self.dedicated_video_memory as u64),
+            )
+            .field(
+                "dedicated_system_memory",
+                &MemoryDbgHelper(self.dedicated_system_memory as u64),
+            )
+            .field(
+                "shared_system_memory",
+                &MemoryDbgHelper(self.shared_system_memory as u64),
+            )
             .field("adapter_luid", &self.adapter_luid)
             .field("flags", &self.flags)
             .finish()
@@ -174,9 +192,18 @@ impl std::fmt::Debug for AdapterDesc2 {
             .field("device_id", &self.device_id)
             .field("subsys_id", &self.subsys_id)
             .field("revision", &self.revision)
-            .field("dedicated_video_memory", &MemoryDbgHelper(self.dedicated_video_memory as u64))
-            .field("dedicated_system_memory", &MemoryDbgHelper(self.dedicated_system_memory as u64))
-            .field("shared_system_memory", &MemoryDbgHelper(self.shared_system_memory as u64))
+            .field(
+                "dedicated_video_memory",
+                &MemoryDbgHelper(self.dedicated_video_memory as u64),
+            )
+            .field(
+                "dedicated_system_memory",
+                &MemoryDbgHelper(self.dedicated_system_memory as u64),
+            )
+            .field(
+                "shared_system_memory",
+                &MemoryDbgHelper(self.shared_system_memory as u64),
+            )
             .field("adapter_luid", &self.adapter_luid)
             .field("flags", &self.flags)
             .field(
@@ -254,9 +281,18 @@ impl std::fmt::Debug for AdapterDesc3 {
             .field("device_id", &self.device_id)
             .field("subsys_id", &self.subsys_id)
             .field("revision", &self.revision)
-            .field("dedicated_video_memory", &MemoryDbgHelper(self.dedicated_video_memory as u64))
-            .field("dedicated_system_memory", &MemoryDbgHelper(self.dedicated_system_memory as u64))
-            .field("shared_system_memory", &MemoryDbgHelper(self.shared_system_memory as u64))
+            .field(
+                "dedicated_video_memory",
+                &MemoryDbgHelper(self.dedicated_video_memory as u64),
+            )
+            .field(
+                "dedicated_system_memory",
+                &MemoryDbgHelper(self.dedicated_system_memory as u64),
+            )
+            .field(
+                "shared_system_memory",
+                &MemoryDbgHelper(self.shared_system_memory as u64),
+            )
             .field("adapter_luid", &self.adapter_luid)
             .field("flags", &self.flags)
             .field(

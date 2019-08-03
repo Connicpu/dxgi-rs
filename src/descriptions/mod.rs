@@ -17,13 +17,15 @@ pub use self::output::*;
 #[doc(inline)]
 pub use self::present_parameters::*;
 #[doc(inline)]
+pub use self::query_video_memory_info::QueryVideoMemoryInfo;
+#[doc(inline)]
 pub use self::ratio::*;
 #[doc(inline)]
 pub use self::rgb::*;
 #[doc(inline)]
 pub use self::sample::*;
 #[doc(inline)]
-pub use self::query_video_memory_info::QueryVideoMemoryInfo;
+pub use self::surface::*;
 #[doc(inline)]
 pub use self::swap_chain::*;
 
@@ -36,9 +38,9 @@ mod luid;
 mod mode;
 mod output;
 mod present_parameters;
+mod query_video_memory_info;
 mod ratio;
 mod rgb;
 mod sample;
 mod surface;
 mod swap_chain;
-mod query_video_memory_info;

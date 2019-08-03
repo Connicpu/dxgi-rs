@@ -1,4 +1,4 @@
-#[auto_enum(u32, checked)]
+#[auto_enum::auto_enum(u32, checked)]
 /// Resource data formats, including fully-typed and typeless formats. A
 /// list of modifiers at the bottom of the page more fully describes each
 /// format type.
